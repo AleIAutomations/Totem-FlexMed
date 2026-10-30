@@ -1,0 +1,92 @@
+{
+  "produto": "FlexMed",
+  "tagline": "O balcão que entende você.",
+  "taglineAlternativas": [
+    "Ouve, vê e atende. Sem guardar quem você é.",
+    "Autoatendimento que enxerga, ouve e fala Libras."
+  ],
+  "contato": {
+    "qr": "https://flexmed.example.com",
+    "linha1": "Fale com\na gente",
+    "linha2": "flexmed.example.com"
+  },
+
+  "cenas": {
+    "gancho": ["Esta tela", "sabe quando", "você olha."],
+    "acorda": {
+      "titulo": "Acorda quando você chega.",
+      "distanciaCm": 120,
+      "olharSeg": 1.5,
+      "rotuloDistancia": "distância",
+      "rotuloOlhando": "olhando"
+    },
+    "voz": {
+      "titulo": "Entende a fala.\nMesmo errada.",
+      "falaCliente": "tem ir de piruna?",
+      "trechoErrado": "ir de piruna",
+      "trechoCerto": "dipirona",
+      "prova": "Whisper no próprio aparelho",
+      "respostaTotem": "Encontrei 3 produtos para dipirona."
+    },
+    "libras": {
+      "titulo": "E em Libras.",
+      "frase": "Dor de cabeça",
+      "prova": "20 letras · 9 sinais",
+      "provaSub": "mãos, rosto e postura"
+    },
+    "fluxo": {
+      "titulo": "Do toque ao balcão.",
+      "local": "Prateleira B3",
+      "codigo": "DP40",
+      "colunas": ["Novos", "Separando", "Prontos"],
+      "legendaBalcao": "O balcão vê na hora."
+    },
+    "porDentro": {
+      "titulo": "Por dentro.",
+      "camadas": [
+        { "nome": "Totem", "itens": ["câmera", "microfone", "toque"] },
+        { "nome": "Na loja", "itens": ["MediaPipe", "CNN de idade", "Whisper", "LibrasFlow"] },
+        { "nome": "SQLite", "itens": ["grava primeiro aqui"] },
+        { "nome": "Supabase", "itens": ["sincroniza a cada 15 s"] }
+      ],
+      "provas": [
+        { "numero": "90,2%", "texto": "de acerto na faixa etária, com margem de uma faixa" },
+        { "numero": "6", "texto": "quadros por segundo analisados" },
+        { "numero": "0", "texto": "imagens guardadas" }
+      ],
+      "publicoTitulo": "O anúncio muda conforme quem olha."
+    },
+    "fechamento": {
+      "lgpd": "Nenhuma imagem guardada.\nSó o que importa."
+    }
+  },
+
+  "totem": {
+    "farmacia": "Farmácia Central",
+    "hora": "14:32",
+    "saudacao": "Boa tarde! O que você procura hoje?",
+    "nichos": [
+      { "key": "todos", "label": "Todos", "icon": "home" },
+      { "key": "medicamentos", "label": "Medicamentos", "icon": "pill" },
+      { "key": "beleza", "label": "Beleza", "icon": "spark" },
+      { "key": "higiene", "label": "Higiene e Cuidados", "icon": "drop" },
+      { "key": "infantil", "label": "Infantil", "icon": "smile" },
+      { "key": "bem_estar", "label": "Saúde e Bem-estar", "icon": "leaf" }
+    ],
+    "anuncio": { "titulo": "Vitamina C\nem dobro", "sub": "Leve 2, pague menos", "cor": "#0057d9" },
+    "produtos": [
+      { "id": "m1", "nome": "Dipirona 1 g · 10 comprimidos", "tipo": "Analgésico e antitérmico", "categoria": "analgesico", "precoValor": 8.9, "precoOriginal": 12.9, "ultimasUnidades": true, "uso": "Para dor e febre. Adultos: 1 comprimido até 4 vezes ao dia.", "emb": { "cor": "#0057d9", "linha1": "Dipirona", "linha2": "1 g" } },
+      { "id": "m2", "nome": "Dipirona gotas 500 mg/mL · 20 mL", "tipo": "Analgésico e antitérmico", "categoria": "analgesico", "precoValor": 6.49, "emb": { "cor": "#0a8f6a", "linha1": "Dipirona", "linha2": "gotas" } },
+      { "id": "m3", "nome": "Dipirona 500 mg · 30 comprimidos", "tipo": "Analgésico e antitérmico", "categoria": "analgesico", "precoValor": 13.9, "precoOriginal": 16.9, "emb": { "cor": "#6a3fd1", "linha1": "Dipirona", "linha2": "500 mg" } },
+      { "id": "m4", "nome": "Paracetamol 750 mg · 20 comprimidos", "tipo": "Analgésico", "categoria": "analgesico", "precoValor": 11.9, "precoOriginal": 15.9, "emb": { "cor": "#e3001b", "linha1": "Paracetamol", "linha2": "750 mg" } },
+      { "id": "m5", "nome": "Vitamina C 1 g efervescente · 10", "tipo": "Vitamina", "categoria": "vitaminas", "precoValor": 19.9, "precoOriginal": 24.9, "emb": { "cor": "#f28c00", "linha1": "Vitamina C", "linha2": "1 g" } },
+      { "id": "m6", "nome": "Protetor solar FPS 50 · 200 mL", "tipo": "Dermocosmético", "categoria": "dermato", "precoValor": 49.9, "precoOriginal": 69.9, "emb": { "cor": "#00a3c4", "linha1": "Protetor", "linha2": "FPS 50" } },
+      { "id": "m7", "nome": "Ibuprofeno 400 mg · 10 cápsulas", "tipo": "Anti-inflamatório", "categoria": "analgesico", "precoValor": 14.9, "emb": { "cor": "#c2185b", "linha1": "Ibuprofeno", "linha2": "400 mg" } },
+      { "id": "m8", "nome": "Pastilha garganta mel e limão · 12", "tipo": "Garganta", "categoria": "alergias", "precoValor": 9.9, "emb": { "cor": "#d4a000", "linha1": "Pastilha", "linha2": "mel e limão" } }
+    ],
+    "resultadoVoz": ["m1", "m2", "m3"],
+    "resultadoLibras": ["m4", "m1", "m7"],
+    "produtoFluxo": "m1",
+    "recomendados": ["m5", "m8"]
+  }
+}

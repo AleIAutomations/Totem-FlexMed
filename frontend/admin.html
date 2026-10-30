@@ -1,0 +1,2981 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="color-scheme" content="only light" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>FlexMed — Painel Administrativo</title>
+<!-- fonte do Google sem bloquear a tela: pela rede lenta do totem, o CSS externo segurava o admin em branco -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/>
+<style>
+:root { color-scheme: only light; } /* sem escurecimento automático do navegador */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0A1628;--navy2:#0F1E35;--blue:#1A4D8F;--blue2:#2C66B0;--blue-lt:#E8F0FC;
+  --teal:#0B7A6E;--emerald:#0D9E6E;
+  --surface:#ffffff;--surface2:#F4F7FB;--surface3:#EAF0F9;
+  --border:#D8E2F0;--border2:#C2D0E8;
+  --text:#0A1628;--text2:#3A4A62;--text3:#6B7A96;--text4:#9AAABF;
+  --red:#DC2626;--red-lt:#FEE2E2;--amber:#D97706;--amber-lt:#FEF3C7;
+  --green:#059669;--green-lt:#D1FAE5;
+  --radius:12px;--radius-sm:8px;--radius-lg:16px;--radius-xl:20px;
+  --shadow:0 1px 3px rgba(10,22,40,.06),0 4px 16px rgba(10,22,40,.07);
+  --shadow-lg:0 8px 32px rgba(10,22,40,.12),0 2px 8px rgba(10,22,40,.08);
+}
+html,body{height:100%;font-family:'Plus Jakarta Sans',sans-serif;background:var(--surface2);color:var(--text)}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+input,textarea,select{font-family:inherit}
+
+/* ─── LOGIN ─────────────────────────────────────────────── */
+#login-screen{
+  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(145deg,var(--navy) 0%,#1a2f54 60%,var(--blue) 100%);
+  z-index:9999;transition:opacity .5s,visibility .5s;
+}
+#login-screen.hidden{opacity:0;visibility:hidden;pointer-events:none}
+
+.login-card{
+  width:100%;max-width:400px;margin:16px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+  border-radius:var(--radius-xl);padding:40px 36px;
+  backdrop-filter:blur(20px);
+}
+.login-logo{display:flex;align-items:center;gap:12px;margin-bottom:32px}
+.login-mark{
+  width:44px;height:44px;border-radius:12px;
+  background:linear-gradient(135deg,var(--blue),var(--blue2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:800;color:#fff;letter-spacing:-.5px;
+}
+.login-brand{font-size:20px;font-weight:700;color:#fff}
+.login-unit{font-size:12px;color:rgba(255,255,255,.5);margin-top:1px}
+.login-title{font-size:24px;font-weight:700;color:#fff;margin-bottom:6px}
+.login-sub{font-size:13px;color:rgba(255,255,255,.55);margin-bottom:28px}
+
+.login-field{margin-bottom:16px}
+.login-label{display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.6);margin-bottom:8px;letter-spacing:.03em;text-transform:uppercase}
+.login-input{
+  width:100%;padding:13px 16px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
+  border-radius:var(--radius-sm);color:#fff;font-size:14px;
+  transition:border-color .2s,background .2s;outline:none;
+}
+.login-input::placeholder{color:rgba(255,255,255,.3)}
+.login-input:focus{border-color:rgba(255,255,255,.4);background:rgba(255,255,255,.12)}
+
+.login-btn{
+  width:100%;padding:14px;margin-top:8px;
+  background:linear-gradient(135deg,var(--blue),var(--blue2));
+  border-radius:var(--radius-sm);color:#fff;font-size:14px;font-weight:700;
+  transition:opacity .2s,transform .15s;letter-spacing:.02em;
+}
+.login-btn:hover{opacity:.9}
+.login-btn:active{transform:scale(.98)}
+
+.login-err{
+  display:none;align-items:center;gap:8px;
+  margin-top:12px;padding:11px 14px;
+  background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.3);
+  border-radius:var(--radius-sm);font-size:13px;color:#FCA5A5;
+}
+.login-err.on{display:flex}
+.login-err svg{flex-shrink:0;width:16px;height:16px}
+.login-hint{margin-top:20px;text-align:center;font-size:12px;color:rgba(255,255,255,.3)}
+.login-hint b{color:rgba(255,255,255,.5)}
+
+/* ─── SHELL ─────────────────────────────────────────────── */
+#app{display:none;height:100%}
+#app.on{display:flex}
+
+/* SIDEBAR */
+.sidebar{
+  width:240px;flex-shrink:0;height:100vh;
+  background:var(--navy);display:flex;flex-direction:column;
+  position:sticky;top:0;
+}
+.sb-head{padding:24px 20px 16px;border-bottom:1px solid rgba(255,255,255,.07)}
+.sb-logo{display:flex;align-items:center;gap:10px}
+.sb-mark{
+  width:36px;height:36px;border-radius:9px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--blue),var(--blue2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:800;color:#fff;
+}
+.sb-brand{font-size:14px;font-weight:700;color:#fff}
+.sb-unit{font-size:11px;color:rgba(255,255,255,.4);margin-top:1px}
+
+.sb-nav{flex:1;padding:16px 12px;overflow-y:auto}
+.sb-section{font-size:10px;font-weight:700;color:rgba(255,255,255,.3);letter-spacing:.08em;text-transform:uppercase;padding:0 8px;margin:16px 0 6px}
+.sb-section:first-child{margin-top:0}
+.sb-badge-alerta{background:#e5243b!important;color:#fff!important}
+.sb-badge-aviso{background:#f59e0b!important;color:#fff!important}
+.sb-item{
+  display:flex;align-items:center;gap:10px;padding:10px 10px;
+  border-radius:var(--radius-sm);color:rgba(255,255,255,.55);
+  font-size:13px;font-weight:500;transition:all .15s;width:100%;text-align:left;
+}
+.sb-item svg{width:16px;height:16px;flex-shrink:0;opacity:.7}
+.sb-item:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.85)}
+.sb-item.on{background:rgba(26,77,143,.5);color:#fff;font-weight:600}
+.sb-item.on svg{opacity:1}
+.sb-badge{
+  margin-left:auto;background:var(--blue);color:#fff;
+  font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;
+}
+
+.sb-foot{padding:16px 12px;border-top:1px solid rgba(255,255,255,.07)}
+.sb-user{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--radius-sm)}
+.sb-avatar{
+  width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(135deg,var(--blue),var(--teal));
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:#fff;flex-shrink:0;
+}
+.sb-user-name{font-size:12px;font-weight:600;color:rgba(255,255,255,.8)}
+.sb-user-role{font-size:11px;color:rgba(255,255,255,.35)}
+.sb-logout{
+  margin-left:auto;padding:6px;border-radius:6px;
+  color:rgba(255,255,255,.35);transition:color .15s,background .15s;
+}
+.sb-logout:hover{color:rgba(255,255,255,.7);background:rgba(255,255,255,.08)}
+.sb-logout svg{width:15px;height:15px;display:block}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column;min-height:100vh}
+.topbar{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:0 28px;height:60px;display:flex;align-items:center;
+  gap:16px;position:sticky;top:0;z-index:100;
+}
+.topbar-title{font-size:16px;font-weight:700;color:var(--text)}
+.topbar-sub{font-size:13px;color:var(--text3);margin-left:2px}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.tb-btn{
+  padding:8px 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;
+  display:flex;align-items:center;gap:7px;transition:all .15s;
+}
+.tb-btn svg{width:15px;height:15px}
+.tb-btn-primary{background:var(--blue);color:#fff}
+.tb-btn-primary:hover{background:var(--blue2)}
+.tb-btn-ghost{border:1px solid var(--border);color:var(--text2)}
+.tb-btn-ghost:hover{background:var(--surface2)}
+.tb-menu,.sb-fundo{display:none}
+
+.content{padding:28px;flex:1}
+.page{display:none}
+.page.on{display:block}
+
+/* ─── CARDS / GRID ──────────────────────────────────────── */
+.stat-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:28px}
+.stat-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px 22px;box-shadow:var(--shadow);
+}
+.stat-card-label{font-size:12px;font-weight:600;color:var(--text3);letter-spacing:.03em;margin-bottom:10px;text-transform:uppercase}
+.stat-card-value{font-size:28px;font-weight:800;color:var(--text);line-height:1}
+.stat-card-sub{font-size:12px;color:var(--text3);margin-top:6px;display:flex;align-items:center;gap:4px}
+.stat-up{color:var(--emerald)}
+.stat-dn{color:var(--red)}
+.stat-card-icon{
+  width:40px;height:40px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;margin-bottom:14px;
+}
+.stat-card-icon svg{width:20px;height:20px}
+.ico-blue{background:var(--blue-lt);color:var(--blue)}
+.ico-green{background:var(--green-lt);color:var(--green)}
+.ico-amber{background:var(--amber-lt);color:var(--amber)}
+.ico-red{background:var(--red-lt);color:var(--red)}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px 24px;box-shadow:var(--shadow)}
+.card-head{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.card-title{font-size:15px;font-weight:700;color:var(--text)}
+.card-sub{font-size:13px;color:var(--text3);margin-top:1px}
+.card-action{margin-left:auto;font-size:12px;font-weight:600;color:var(--blue);transition:color .15s}
+.card-action:hover{color:var(--blue2)}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+
+/* ─── TABLES ────────────────────────────────────────────── */
+.tbl-wrap{overflow-x:auto;margin-top:4px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 14px;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border)}
+td{padding:13px 14px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface2)}
+.td-bold{font-weight:600;color:var(--text)}
+.td-mono{font-family:monospace;font-size:12px}
+
+/* ─── BADGES ────────────────────────────────────────────── */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:99px;font-size:11px;font-weight:700}
+.badge-green{background:var(--green-lt);color:var(--green)}
+.badge-amber{background:var(--amber-lt);color:var(--amber)}
+.badge-red{background:var(--red-lt);color:var(--red)}
+.badge-blue{background:var(--blue-lt);color:var(--blue)}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+
+/* ─── FORMS ─────────────────────────────────────────────── */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.form-row.full{grid-template-columns:1fr;margin-bottom:16px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-label{font-size:12px;font-weight:600;color:var(--text2);letter-spacing:.02em}
+.form-input{
+  padding:10px 14px;border:1px solid var(--border2);border-radius:var(--radius-sm);
+  font-size:13px;color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s;
+  background:var(--surface);
+}
+.form-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,77,143,.1)}
+.form-input::placeholder{color:var(--text4)}
+.form-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7A96' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.form-hint{font-size:11px;color:var(--text3)}
+textarea.form-input{resize:vertical;min-height:90px}
+
+.color-row{display:flex;align-items:center;gap:10px}
+.color-preview{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);flex-shrink:0}
+.color-input{width:80px}
+
+.swatches-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.swatch{width:32px;height:32px;border-radius:8px;border:2px solid transparent;cursor:pointer;transition:transform .15s,border-color .15s}
+.swatch:hover{transform:scale(1.1)}
+.swatch.on{border-color:var(--text)}
+
+.save-bar{
+  display:flex;align-items:center;gap:12px;padding:16px 24px;
+  background:var(--surface);border-top:1px solid var(--border);
+  margin:24px -24px -22px;border-radius:0 0 var(--radius) var(--radius);
+}
+.btn-save{
+  padding:10px 22px;background:linear-gradient(135deg,var(--blue),var(--blue2));
+  border-radius:var(--radius-sm);color:#fff;font-size:13px;font-weight:700;
+  display:flex;align-items:center;gap:8px;transition:opacity .2s;
+}
+.btn-save:hover{opacity:.88}
+.btn-save svg{width:15px;height:15px}
+.btn-cancel{padding:10px 18px;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:13px;font-weight:600;transition:background .15s}
+.btn-cancel:hover{background:var(--surface2)}
+
+/* ─── CHARTS (CSS-only sparklines) ─────────────────────── */
+.chart-bar-row{display:flex;align-items:flex-end;gap:5px;height:80px;margin:16px 0 8px}
+.chart-bar{
+  flex:1;background:var(--blue-lt);border-radius:4px 4px 0 0;
+  transition:height .5s cubic-bezier(.34,1.56,.64,1);position:relative;cursor:pointer;
+}
+.chart-bar:hover{background:var(--blue)}
+.chart-bar .tip{
+  display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
+  background:var(--navy);color:#fff;font-size:11px;font-weight:600;padding:4px 8px;border-radius:6px;white-space:nowrap;
+}
+.chart-bar:hover .tip{display:block}
+.chart-labels{display:flex;gap:5px;font-size:10px;color:var(--text3)}
+.chart-labels span{flex:1;text-align:center}
+
+.mini-chart{display:flex;align-items:flex-end;gap:3px;height:40px}
+.mini-bar{flex:1;background:var(--blue-lt);border-radius:3px 3px 0 0;min-height:4px}
+
+/* ─── TOTEM PREVIEW ─────────────────────────────────────── */
+.preview-wrap{display:flex;justify-content:center;padding:20px 0}
+.preview-phone{
+  width:200px;border:3px solid var(--border2);border-radius:24px;overflow:hidden;
+  box-shadow:var(--shadow-lg);background:var(--surface);
+}
+.prev-hdr{
+  display:flex;align-items:center;gap:8px;padding:10px 12px;
+}
+.prev-mark{
+  width:26px;height:26px;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:800;color:#fff;
+}
+.prev-brand{font-size:11px;font-weight:700;color:var(--text)}
+.prev-unit{font-size:9px;color:var(--text3)}
+.prev-body{padding:8px 10px;background:var(--surface2)}
+.prev-search{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:10px;color:var(--text4);margin-bottom:8px}
+.prev-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:6px}
+.prev-card-name{font-size:10px;font-weight:700;color:var(--text)}
+.prev-card-sub{font-size:9px;color:var(--text3);margin-top:2px}
+.prev-line{height:3px;border-radius:99px;margin-top:6px}
+.prev-nav{
+  display:flex;justify-content:space-around;padding:8px 0 6px;
+  border-top:1px solid var(--border);background:var(--surface);
+}
+.prev-nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:8px;color:var(--text3)}
+.prev-nav-item.on{color:var(--blue)}
+.prev-nav-item svg{width:14px;height:14px}
+
+/* ─── PRODUCT TABLE ACTIONS ─────────────────────────────── */
+.row-actions{display:flex;gap:6px}
+.row-btn{
+  padding:5px 10px;border-radius:6px;font-size:12px;font-weight:600;
+  display:flex;align-items:center;gap:5px;transition:background .15s;
+}
+.row-btn svg{width:13px;height:13px}
+.row-btn-edit{border:1px solid var(--border);color:var(--text2)}
+.row-btn-edit:hover{background:var(--surface2)}
+.row-btn-del{border:1px solid var(--red-lt);color:var(--red)}
+.row-btn-del:hover{background:var(--red-lt)}
+
+/* ─── AI SECTION ────────────────────────────────────────── */
+.ai-modules{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.ai-mod{
+  border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;
+  display:flex;align-items:center;gap:14px;transition:border-color .2s,box-shadow .2s;cursor:pointer;
+}
+.ai-mod:hover{border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,77,143,.07)}
+.ai-mod.active{border-color:var(--blue);background:var(--blue-lt)}
+.ai-mod-ico{
+  width:40px;height:40px;border-radius:10px;background:var(--blue-lt);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--blue);
+}
+.ai-mod-ico svg{width:20px;height:20px}
+.ai-mod.active .ai-mod-ico{background:var(--blue);color:#fff}
+.ai-mod-name{font-size:13px;font-weight:700;color:var(--text)}
+.ai-mod-desc{font-size:12px;color:var(--text3);margin-top:2px}
+.ai-mod-toggle{margin-left:auto}
+.toggle-sw{position:relative;display:inline-block;vertical-align:middle;width:38px;height:22px;flex-shrink:0}
+.toggle-sw input{opacity:0;width:0;height:0}
+.toggle-track{
+  position:absolute;inset:0;background:var(--border2);border-radius:99px;
+  transition:background .2s;cursor:pointer;
+}
+.toggle-track::after{
+  content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;
+  background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);
+}
+.toggle-sw input:checked + .toggle-track{background:var(--blue)}
+.toggle-sw input:checked + .toggle-track::after{transform:translateX(16px)}
+
+/* ─── TOAST ─────────────────────────────────────────────── */
+#adm-toast{
+  position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:var(--navy);color:#fff;padding:12px 22px;border-radius:99px;
+  font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;
+  box-shadow:var(--shadow-lg);transition:transform .35s cubic-bezier(.34,1.56,.64,1),opacity .3s;
+  opacity:0;z-index:9000;white-space:nowrap;
+}
+#adm-toast.on{transform:translateX(-50%) translateY(0);opacity:1}
+#adm-toast svg{width:16px;height:16px;color:var(--emerald)}
+
+/* ─── MODAL ─────────────────────────────────────────────── */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(10,22,40,.45);backdrop-filter:blur(4px);
+  z-index:800;display:none;align-items:center;justify-content:center;
+}
+.modal-bg.on{display:flex}
+.modal{background:var(--surface);border-radius:var(--radius-lg);padding:28px 28px 24px;width:100%;max-width:460px;margin:16px;box-shadow:var(--shadow-lg)}
+.modal-title{font-size:17px;font-weight:700;color:var(--text);margin-bottom:4px}
+.modal-sub{font-size:13px;color:var(--text3);margin-bottom:22px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+
+/* ─── RESPONSIVE ────────────────────────────────────────── */
+@media(max-width:900px){
+  .sidebar{width:200px}
+  .stat-row{grid-template-columns:1fr 1fr}
+  .grid-2{grid-template-columns:1fr}
+}
+@media(max-width:700px){
+  /* Telas estreitas (o totem em pé tem 617 px): o menu lateral vira uma gaveta,
+     aberta pelo botão "Menu" da barra do topo; fecha ao escolher uma página ou tocar fora. */
+  .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:300;width:264px;overflow-y:auto;
+    transform:translateX(-100%);transition:transform .2s ease-out}
+  body.menu-aberto .sidebar{transform:none;box-shadow:0 0 40px rgba(10,22,40,.35)}
+  body.menu-aberto .sb-fundo{display:block;position:fixed;inset:0;z-index:299;background:rgba(10,22,40,.45)}
+  .tb-menu{display:flex}
+  .topbar{padding:0 16px;gap:12px}
+  .content{padding:16px}
+  .stat-row{grid-template-columns:1fr 1fr}
+}
+
+/* ─── CAMPAIGN PAGE ─────────────────────────────────────── */
+.cp-type-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:99px;font-size:11px;font-weight:700}
+.cp-type-image{background:#EEF2FF;color:#4F46E5}
+.cp-type-video{background:#FEF3C7;color:#D97706}
+.cp-type-carousel{background:#ECFDF5;color:#059669}
+
+.media-upload-area{
+  border:2px dashed var(--border2);border-radius:var(--radius-sm);
+  padding:24px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;
+}
+.media-upload-area:hover{border-color:var(--blue);background:var(--blue-lt)}
+.media-upload-area svg{opacity:.4;margin-bottom:8px}
+.media-upload-area p{font-size:13px;color:var(--text3);margin:0}
+.media-upload-area span{font-size:12px;color:var(--text4)}
+
+.media-preview-list{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.media-preview-item{
+  width:90px;height:70px;border-radius:8px;overflow:hidden;
+  border:1px solid var(--border);position:relative;
+}
+.media-preview-item img,.media-preview-item video{width:100%;height:100%;object-fit:cover}
+.media-preview-remove{
+  position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;
+  background:rgba(0,0,0,.6);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:background .15s;
+}
+.media-preview-remove:hover{background:var(--red)}
+
+.cp-analytics-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
+
+/* ─── VISION PAGE ────────────────────────────────────────── */
+.vision-live-dot{
+  width:10px;height:10px;border-radius:50%;background:var(--green);display:inline-block;
+  animation:vdot 2s ease-in-out infinite;
+}
+@keyframes vdot{0%,100%{opacity:1}50%{opacity:.3}}
+.vision-stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+
+.funnel-wrap{display:flex;align-items:flex-end;gap:12px;padding:16px 0}
+.funnel-bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px}
+.funnel-fill{width:100%;border-radius:6px 6px 0 0;background:var(--blue-lt);transition:height .5s}
+.funnel-label{font-size:11px;color:var(--text3);font-weight:600;text-align:center}
+.funnel-val{font-size:18px;font-weight:800;color:var(--text)}
+
+/* ─── IOT PAGE EXTRAS ────────────────────────────────────── */
+.iot-status-dot {
+  width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px;
+}
+.iot-ok{background:var(--green)}
+.iot-warn{background:var(--amber)}
+.iot-err{background:var(--red)}
+
+/* ─── LAYOUT PRESETS ─────────────────────────────────────── */
+#layout-presets .tb-btn{font-size:12px;gap:5px}
+
+/* ─── TOPBAR TOTEM BTN ───────────────────────────────────── */
+.totem-launch-btn {
+  background:linear-gradient(135deg,var(--blue),var(--blue2));
+  color:#fff;border:none;
+}
+.totem-launch-btn:hover{opacity:.88}
+
+/* ── Admin Logo Upload ─────────────────────────── */
+.adm-logo-area {
+  border: 2px dashed var(--border2);
+  border-radius: var(--radius-sm);
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+  margin-bottom: 0;
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.adm-logo-area:hover {
+  border-color: var(--blue);
+  background: var(--blue-lt, #e8f0fc);
+}
+.adm-logo-preview-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  width: 100%;
+}
+
+/* ─── Painéis de métricas (admin_metricas.js) ─── */
+.mt-cabecalho{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:18px;flex-wrap:wrap}
+.mt-legenda{font-size:12.5px;color:var(--text3);max-width:720px;line-height:1.5}
+.mt-periodo{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:3px}
+.mt-periodo button{border:none;background:none;padding:6px 12px;border-radius:7px;font:inherit;font-size:12.5px;font-weight:700;color:var(--text3);cursor:pointer}
+.mt-periodo button.on{background:var(--blue,#1a4d8f);color:#fff}
+.mt-vazio{padding:22px;text-align:center;color:var(--text3);font-size:13px}
+.mt-barras{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.mt-barra-topo{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;margin-bottom:4px}
+.mt-barra-topo span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mt-barra-topo b{white-space:nowrap}
+.mt-barra-trilho{height:8px;background:var(--surface2,#f4f6fa);border-radius:99px;overflow:hidden}
+.mt-barra-trilho div{height:100%;border-radius:99px}
+.mt-funil{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.mt-funil-etapa{position:relative;height:38px;background:var(--surface2,#f4f6fa);border-radius:10px;overflow:hidden}
+.mt-funil-barra{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#1a4d8f,#2c66b0);border-radius:10px}
+.mt-funil-txt{position:relative;display:flex;justify-content:space-between;align-items:center;height:100%;padding:0 12px;font-size:12.5px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.25)}
+.mt-linha{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;max-height:420px;overflow:auto}
+.mt-linha li{display:flex;gap:12px;font-size:12.5px;padding:7px 10px;border-radius:8px;background:var(--surface2,#f4f6fa)}
+.mt-linha-t{min-width:56px;color:var(--text3);font-variant-numeric:tabular-nums}
+.mt-ev-finalizou{background:#e7f6ee!important}
+.mt-ev-carrinho_add{background:#eef4ff!important}
+.mt-mini{display:flex;height:10px;min-width:90px;border-radius:99px;overflow:hidden;background:var(--surface2,#f4f6fa)}
+.mt-mini span{height:100%}
+.mt-mini-grande{height:26px;margin-top:12px}
+.mt-mini-grande span{display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden}
+.mt-legenda-cores{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;font-size:12px;color:var(--text3)}
+.mt-legenda-cores i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.mt-ao-vivo{margin-bottom:20px}
+.mt-cabecalho-dir{display:flex;align-items:center;gap:10px}
+/* ─── Loja: catálogo, estoque e pedidos (admin_catalogo/estoque/pedidos.js) ─── */
+.lj-foto{width:44px;height:44px;border-radius:8px;object-fit:contain;background:#fff;border:1px solid var(--border);display:block}
+.lj-sem-foto{display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--text3);background:var(--surface2,#f1f4f9)}
+.lj-nome{max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lj-sub{font-size:11.5px;color:var(--text3);margin-top:2px}
+.lj-red{color:#c81e33}.lj-amber{color:#b45309}.lj-green{color:#1b7a43}
+.lj-modal{max-width:760px;max-height:92vh;overflow:auto}
+.lj-modal-topo{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:14px}
+.lj-modal-foto{width:56px;height:56px;border-radius:10px;object-fit:contain;border:1px solid var(--border);background:#fff}
+.lj-abas{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:16px;overflow-x:auto}
+.lj-abas button{border:0;background:none;padding:10px 14px;font:inherit;font-size:13px;font-weight:700;color:var(--text3);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap}
+.lj-abas button.on{color:var(--blue);border-bottom-color:var(--blue)}
+.lj-abas-pagina{margin-bottom:20px}
+.lj-corpo{min-height:300px}
+.lj-switches{display:flex;flex-wrap:wrap;gap:18px;margin:4px 0 14px}
+.lj-switches label{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;cursor:pointer}
+.lj-margem{padding:10px 12px;border-radius:10px;background:var(--surface2,#f1f4f9);font-size:12.5px;min-height:40px;line-height:1.5}
+.lj-saldo{display:flex;gap:28px;align-items:center;padding:12px 14px;border-radius:12px;background:var(--surface2,#f1f4f9);margin-bottom:14px;flex-wrap:wrap}
+.lj-saldo div{display:flex;flex-direction:column}
+.lj-saldo b{font-size:22px;color:var(--navy,#0a1628)}
+.lj-saldo span{font-size:11.5px;color:var(--text3)}
+.lj-saldo button{margin-left:auto}
+.lj-drop{display:flex;flex-direction:column;align-items:center;gap:6px;padding:26px;border:2px dashed var(--border);border-radius:14px;text-align:center;font-size:13px;transition:.15s}
+.lj-drop.on{border-color:var(--blue);background:#eef4ff}
+.lj-drop span{font-size:12px;color:var(--text3)}
+.lj-link{color:var(--blue);font-weight:700;cursor:pointer;text-decoration:underline}
+.lj-check{display:flex;gap:6px;align-items:center;font-size:12px;margin-top:6px;cursor:pointer}
+.lj-fotos{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.lj-foto-item{position:relative;width:120px;height:120px;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#fff}
+.lj-foto-item.principal{border:2px solid var(--blue)}
+.lj-foto-item img{width:100%;height:100%;object-fit:contain}
+.lj-foto-tag,.lj-foto-btn{position:absolute;left:6px;bottom:6px;font-size:10px;font-weight:800;padding:3px 7px;border-radius:99px;border:0}
+.lj-foto-tag{background:var(--blue);color:#fff}
+.lj-foto-btn{background:rgba(10,22,40,.75);color:#fff;cursor:pointer}
+.lj-foto-x{position:absolute;top:5px;right:5px;width:22px;height:22px;border-radius:50%;border:0;background:rgba(10,22,40,.7);color:#fff;cursor:pointer}
+.lj-massa{display:none;align-items:center;gap:8px;padding:10px 12px;margin-bottom:10px;border-radius:10px;background:#eef4ff;font-size:13px;flex-wrap:wrap}
+.lj-massa.on{display:flex}
+.lj-alertas{display:flex;flex-direction:column;gap:8px;max-height:460px;overflow:auto}
+.lj-alerta{display:flex;align-items:center;gap:12px;padding:10px;border-radius:12px;border-left:4px solid}
+.lj-alerta-red{border-color:#e5243b;background:#fff1f2}
+.lj-alerta-amber{border-color:#f59e0b;background:#fffbeb}
+.lj-alerta-info{flex:1;min-width:0;display:flex;flex-direction:column;font-size:12.5px}
+.lj-alerta-info b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lj-alerta-info span{color:var(--text3);font-size:12px}
+.lj-resumo-linhas{display:flex;flex-direction:column;margin-top:14px;border-top:1px solid var(--border)}
+.lj-resumo-linhas div{display:flex;justify-content:space-between;padding:9px 2px;border-bottom:1px solid var(--border);font-size:13px}
+.lj-tipos{grid-template-columns:repeat(5,1fr);margin-bottom:14px}
+.lj-mini-hist{display:flex;flex-direction:column;gap:4px;font-size:12px}
+.lj-mini-hist div{display:grid;grid-template-columns:110px 80px 44px 50px 1fr;gap:8px;padding:5px 8px;border-radius:6px;background:var(--surface2,#f1f4f9)}
+.lj-mini-hist em{color:var(--text3);font-style:normal;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lj-abc{display:flex;gap:10px;margin-bottom:12px}
+.lj-abc div{flex:1;padding:10px;border-radius:10px;display:flex;flex-direction:column;align-items:center;color:#fff}
+.lj-abc b{font-size:22px}.lj-abc span{font-size:11px;opacity:.9}
+.lj-abc-A{background:#1b6b4e}.lj-abc-B{background:#b45309}.lj-abc-C{background:#64748b}
+.pedido-aviso{padding:9px 12px;border-radius:10px;background:#fff7ed;color:#9a3412;font-size:12.5px;margin:8px 0}
+.ped-quadro{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start}
+.ped-coluna{background:var(--surface2,#f1f4f9);border-radius:16px;padding:12px;min-height:220px;display:flex;flex-direction:column;gap:10px}
+.ped-coluna-topo{display:flex;justify-content:space-between;align-items:center;padding:2px 4px 4px;font-size:13.5px}
+.ped-coluna-topo span{min-width:24px;height:24px;border-radius:99px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;background:#64748b}
+.ped-col-novo .ped-coluna-topo span{background:#e5243b}.ped-col-separando .ped-coluna-topo span{background:#f59e0b}.ped-col-pronto .ped-coluna-topo span{background:#1b7a43}
+.ped-vazio{font-size:12.5px;color:var(--text3);text-align:center;padding:24px 0}
+.ped-cartao{background:#fff;border-radius:14px;padding:12px;box-shadow:0 2px 8px rgba(10,22,40,.06);border:1px solid var(--border)}
+.ped-atrasado{border-color:#e5243b;box-shadow:0 0 0 2px rgba(229,36,59,.15)}
+.ped-cartao-topo{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.ped-codigo{font-size:24px;font-weight:900;letter-spacing:.08em;color:var(--blue)}
+.ped-tempo{font-size:11.5px;color:var(--text3)}
+.ped-itens{display:flex;flex-direction:column;gap:6px}
+.ped-item{display:flex;gap:8px;align-items:center;font-size:12.5px}
+.ped-item img,.ped-item i{width:34px;height:34px;border-radius:6px;object-fit:contain;border:1px solid var(--border);background:#fff;flex-shrink:0}
+.ped-item div{display:flex;flex-direction:column;min-width:0}
+.ped-item span{font-size:11px;color:var(--text3)}
+.ped-falta b{color:#c81e33}.ped-item em{color:#c81e33;font-style:normal}
+.ped-obs{margin-top:8px;font-size:12px;padding:6px 8px;min-height:0!important;width:100%;resize:none}
+.ped-cartao-rodape{display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:6px}
+.ped-cartao-rodape div{display:flex;gap:6px}
+@media(max-width:1100px){.ped-quadro{grid-template-columns:1fr}.vt-tipos,.lj-tipos{grid-template-columns:repeat(2,1fr)}}
+/* ─── Leitor de código de barras, lotes (admin_catalogo/estoque.js) ─── */
+.lj-btn-bip{display:inline-flex;align-items:center;gap:6px}
+.lj-leitor{display:flex;align-items:center;gap:12px;padding:14px 16px;border:2px solid var(--blue);border-radius:16px;background:#f5f8fe;box-shadow:0 0 0 4px rgba(26,77,143,.08)}
+.lj-leitor-ico{display:flex;color:var(--blue)}
+.lj-leitor-ico svg{width:40px;height:40px}
+.lj-leitor-input{flex:1;min-width:0;border:0;background:transparent;font:inherit;font-size:28px;font-weight:800;letter-spacing:.06em;color:var(--navy,#0a1628);outline:none;font-variant-numeric:tabular-nums}
+.lj-leitor-input::placeholder{font-size:16px;font-weight:600;letter-spacing:0;color:var(--text3)}
+.lj-leitor-cam{border:1px solid var(--border);background:#fff;border-radius:10px;padding:10px 12px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+.lj-leitor-cam:disabled{opacity:.45;cursor:not-allowed}
+.lj-leitor-video{width:100%;max-height:260px;margin-top:10px;border-radius:12px;background:#000;object-fit:cover}
+.lj-leitor-status{min-height:22px;margin-top:8px;font-size:13px;font-weight:600}
+.lj-leitor-ok{color:#1b7a43}.lj-leitor-erro{color:#c81e33}.lj-leitor-info{color:var(--blue)}
+.lj-leitor-bloco{margin-bottom:16px}
+.lj-leitor-atual{display:flex;align-items:center;gap:12px;margin-top:4px}
+.lj-barras{font-family:ui-monospace,monospace;font-size:20px;font-weight:800;letter-spacing:.12em;padding:6px 12px;border-radius:8px;background:#fff;border:1px dashed var(--border)}
+.lj-bip-card{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;background:var(--surface2,#f1f4f9);margin-top:6px}
+.lj-bip-card div{flex:1;display:flex;flex-direction:column;font-size:13px}
+.lj-bip-card span{font-size:12px;color:var(--text3)}
+.lj-colar{margin:12px 0;font-size:13px}
+.lj-colar summary{cursor:pointer;font-weight:700;color:var(--blue)}
+.lj-grade-lote{margin-top:12px;max-height:420px;overflow:auto}
+.lj-grade-lote td{padding:4px 6px!important}
+.lj-grade-lote .form-input{padding:6px 8px;font-size:12.5px}
+.lj-linha-erro{background:#fff1f2}.lj-linha-ok{background:#e7f6ee}
+.lj-qtd{display:flex;align-items:center;gap:4px}
+.lj-qtd button{width:28px;height:30px;border:1px solid var(--border);background:#fff;border-radius:8px;font-weight:800;cursor:pointer}
+.lj-qtd input{width:64px;text-align:center;padding:6px}
+.est-topo{align-items:center}
+.est-topo-acoes{margin-left:auto;display:flex;gap:8px;padding-bottom:6px}
+/* ─── Categorias (admin_categorias.js) ─── */
+.ct-arvore{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:16px;align-items:start}
+.ct-nicho{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.ct-nicho-topo{display:flex;align-items:center;gap:12px;padding:14px;background:linear-gradient(120deg,#0f2a4f,#1a4d8f);color:#fff}
+.ct-nicho-nome{flex:1;display:flex;flex-direction:column}
+.ct-nicho-nome span{font-size:11.5px;opacity:.75}
+.ct-nicho-topo .tb-btn{background:rgba(255,255,255,.12);color:#fff;border-color:transparent}
+.ct-ico{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ct-ico svg{width:20px;height:20px}
+.ct-ico .fx-ico .ac{fill:#e3001b;stroke:#e3001b}.ct-ico .fx-ico .al{stroke:#e3001b}
+.ct-nicho-topo .ct-ico{background:#fff;color:#0057d9}
+.ct-ico-p{width:30px;height:30px;background:#eef4ff;color:var(--blue)}
+.ct-ico-p svg{width:16px;height:16px}
+.ct-acoes{display:flex;align-items:center;gap:6px}
+.ct-mini{width:26px;height:26px;border-radius:7px;border:1px solid rgba(0,0,0,.08);background:rgba(255,255,255,.9);color:var(--navy,#0a1628);cursor:pointer;font-weight:800}
+.ct-mini:disabled{opacity:.3;cursor:default}
+.ct-mini-txt{width:auto;padding:0 10px;font-size:12px;font-weight:700;border-color:var(--border)}
+.ct-subs{display:flex;flex-direction:column;gap:6px;padding:12px}
+.ct-sub{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:10px}
+.ct-sub-nome{flex:1;min-width:0;display:flex;flex-direction:column;font-size:13px}
+.ct-sub-nome span{font-size:11.5px;color:var(--text3)}
+.ct-inativo{opacity:.5}
+.ct-vazio{font-size:12.5px;color:var(--text3);padding:8px}
+.ct-add{border:1.5px dashed var(--border);background:none;border-radius:10px;padding:9px;font:inherit;font-size:12.5px;font-weight:700;color:var(--blue);cursor:pointer;margin-top:4px}
+.ct-icones{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+.ct-icones button{height:42px;border:1px solid var(--border);border-radius:10px;background:#fff;color:var(--navy,#0a1628);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.ct-icones button svg{width:20px;height:20px}
+.ct-icones button.on{border-color:var(--blue);background:#eef4ff;color:var(--blue);box-shadow:0 0 0 2px rgba(26,77,143,.15)}
+/* ─── Painel de marketing (admin_marketing.js) ─── */
+.mk-insights{margin-bottom:20px;background:linear-gradient(120deg,#fffbeb,#fff);border-color:#fde68a}
+.mk-insights ul{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:13.5px}
+.mk-card-valor{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.mk-card-valor span:first-child{font-size:26px;font-weight:800;color:var(--navy,#0a1628)}
+.mk-var{font-size:12px;font-weight:800;padding:2px 8px;border-radius:99px;background:var(--surface2,#f1f4f9);color:var(--text3)}
+.mk-var-bom{background:#e7f6ee;color:#1b7a43}.mk-var-ruim{background:#fff1f2;color:#c81e33}.mk-var-nd{font-weight:600}
+.mk-funil{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.mk-funil-etapa{position:relative;height:40px;border-radius:10px;background:var(--surface2,#f1f4f9);overflow:hidden}
+.mk-funil-barra{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#b9d0f0,#d6e4f7);border-right:3px solid #1a4d8f}
+.mk-funil-txt{position:relative;display:grid;grid-template-columns:1fr 90px 200px;align-items:center;height:100%;padding:0 14px;font-size:13px}
+.mk-funil-txt span{font-weight:700;color:var(--navy,#0a1628)}
+.mk-funil-txt b{text-align:right;font-size:15px}
+.mk-funil-txt em{font-style:normal;text-align:right;font-size:12px;color:var(--text3)}
+.mk-ponto{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px;vertical-align:0}
+.mk-origens{display:flex;flex-direction:column;gap:8px}
+.mk-origens div{display:grid;grid-template-columns:1fr auto;grid-template-rows:auto auto;padding:10px 12px;border-radius:10px;background:var(--surface2,#f1f4f9)}
+.mk-origens span{font-size:13px;font-weight:700}.mk-origens b{grid-row:span 2;align-self:center;font-size:22px}
+.mk-origens em{font-style:normal;font-size:12px;color:var(--text3)}
+.mk-comparar{display:flex;gap:14px;flex-wrap:wrap}
+.mk-comparar div{flex:1;min-width:130px;display:flex;flex-direction:column;padding:12px;border-radius:12px;background:var(--surface2,#f1f4f9)}
+.mk-comparar b{font-size:22px}.mk-comparar span{font-size:11.5px;color:var(--text3)}
+.mk-grade{display:grid;grid-template-columns:34px repeat(24,1fr);gap:2px;font-size:10px;color:var(--text3);align-items:center}
+.mk-grade span{text-align:center}.mk-grade b{font-size:11px}
+.mk-grade i{aspect-ratio:1;border-radius:3px;display:block}
+.mk-horas{display:grid;grid-template-columns:repeat(24,1fr);gap:3px;height:90px;align-items:end}
+.mk-horas div{position:relative;height:100%;display:flex;align-items:flex-end;justify-content:center}
+.mk-horas i{width:100%;background:#c7d6ee;border-radius:3px 3px 0 0;display:block}
+.mk-horas em{position:absolute;bottom:0;width:40%;background:#1b9e5b;border-radius:2px 2px 0 0}
+/* ─── Atividade (admin_atividade.js) ─── */
+.atv-grid{grid-template-columns:400px 1fr;align-items:start}
+.atv-coluna{display:flex;flex-direction:column;gap:20px}
+.atv-mapa-wrap{display:flex;justify-content:center;padding:14px;border-radius:18px;background:#0a1628}
+.atv-mapa-wrap canvas{width:100%;max-width:340px;aspect-ratio:9/16;border-radius:10px;background:#fff}
+.atv-mapa-mini canvas{max-width:240px}
+.atv-escala{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:11px;color:var(--text3)}
+.atv-escala i{flex:1;height:8px;border-radius:99px;background:linear-gradient(90deg,#2563eb,#22c55e,#facc15,#e5243b)}
+.atv-trilho{display:flex}
+.atv-trilho div{border-radius:0!important}
+.atv-olhar{display:inline-block;width:70px;height:8px;border-radius:99px;background:var(--surface2,#f1f4f9);overflow:hidden;margin-right:8px;vertical-align:middle}
+.atv-olhar div{height:100%;background:#1b9e5b}
+.atv-funil{display:inline-block;width:60px;height:8px;border-radius:99px;background:var(--surface2,#f1f4f9);overflow:hidden;margin-right:8px;vertical-align:middle}
+.atv-funil i{display:block;height:100%;background:var(--blue)}
+.atv-faixas{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.atv-faixa{border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.atv-faixa-topo{color:#fff;font-weight:800;font-size:12.5px;padding:8px 12px}
+.atv-faixa ol{margin:0;padding:8px 12px 10px 28px;font-size:12.5px}
+.atv-faixa li{padding:3px 0}
+.atv-faixa li span{display:inline-block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}
+.atv-faixa li b{float:right}
+.atv-grid-sessoes{grid-template-columns:380px 1fr;align-items:start}
+.atv-lista{display:flex;flex-direction:column;gap:6px;max-height:720px;overflow:auto}
+.atv-sessao{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:#fff;font:inherit;text-align:left;cursor:pointer}
+.atv-sessao.on{border-color:var(--blue);background:#eef4ff}
+.atv-sessao div{display:flex;flex-direction:column;font-size:12.5px}
+.atv-sessao span{font-size:11.5px;color:var(--text3)}
+.atv-replay{display:grid;grid-template-columns:270px 1fr;gap:18px;align-items:start}
+.atv-tempo{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px;max-height:640px;overflow:auto}
+.atv-tempo li{display:grid;grid-template-columns:56px 22px 1fr;gap:6px;align-items:start;padding:7px 10px;border-radius:8px;background:var(--surface2,#f1f4f9);font-size:12.5px}
+.atv-tempo em{display:block;font-style:normal;font-size:11.5px;color:var(--text3)}
+.atv-t{color:var(--text3);font-variant-numeric:tabular-nums}
+.atv-ev-toque{background:#fff1f2!important}.atv-ev-produto_tempo{background:#eef4ff!important}.atv-ev-finalizou{background:#e7f6ee!important}
+.atv-ev-tela_tempo{background:#f7f9fc!important;border:1px dashed var(--border)}
+@media(max-width:1200px){.atv-grid,.atv-grid-sessoes,.atv-replay{grid-template-columns:1fr}}
+/* ─── Vitrine entre produtos (admin_vitrine.js) ─── */
+.vt-grid{grid-template-columns:1.5fr 1fr;align-items:start}
+.vt-camp-cfg{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:20px;flex-wrap:wrap}
+.vt-mapa-camp{background:linear-gradient(120deg,#b45309,#d97706)}
+.vt-lista{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.vt-item{display:flex;gap:14px;align-items:center;padding:12px;border:1px solid var(--border);border-radius:12px}
+.vt-pausado{opacity:.55}
+.vt-mini{width:120px;height:38px;border-radius:8px;object-fit:cover;flex-shrink:0;background:var(--surface2,#f1f4f9)}
+.vt-mini-prods{display:flex;gap:3px;padding:5px;background:#eef4ff}
+.vt-mini-prods i{flex:1;border-radius:4px;background:#fff;border:1px solid #d3e1f2}
+.vt-item-info{flex:1;min-width:0}
+.vt-item-nome{font-weight:700;font-size:13.5px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.vt-item-sub{font-size:12px;color:var(--text3);margin-top:3px}
+.vt-item-acoes{display:flex;align-items:center;gap:8px}
+.vt-mapa{display:flex;flex-direction:column;gap:5px;margin-top:6px}
+.vt-mapa-linha{display:flex;align-items:center;gap:5px}
+.vt-mapa-linha span{width:52px;font-size:11px;color:var(--text3)}
+.vt-mapa-linha i{flex:1;height:22px;border-radius:5px;background:var(--surface2,#f1f4f9);border:1px solid var(--border)}
+.vt-mapa-fim{font-size:11.5px;color:var(--text3);padding-left:57px}
+.vt-mapa-bloco{margin-left:57px;padding:8px 10px;border-radius:8px;background:linear-gradient(120deg,#1a4d8f,#2c66b0);color:#fff;font-size:11.5px;font-weight:700;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.vt-mapa-bloco span{background:rgba(255,255,255,.16);padding:3px 8px;border-radius:99px}
+.vt-mapa-bloco em{font-weight:500;opacity:.8}
+.vt-modal{max-width:720px;max-height:92vh;overflow:auto}
+.vt-tipos{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.vt-tipos button{display:flex;flex-direction:column;gap:3px;text-align:left;padding:9px;border:1px solid var(--border);border-radius:10px;background:#fff;font:inherit;cursor:pointer}
+.vt-tipos button b{font-size:12.5px}
+.vt-tipos button span{font-size:10.5px;color:var(--text3);line-height:1.3}
+.vt-tipos button.on{border-color:var(--blue);background:#eef4ff;box-shadow:0 0 0 2px rgba(26,77,143,.15)}
+.vt-midias{display:flex;flex-wrap:wrap;gap:8px}
+.vt-midia-item{position:relative;width:160px;height:50px;border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+.vt-midia-item img,.vt-midia-item video{width:100%;height:100%;object-fit:cover}
+.vt-midia-item button{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;border:0;background:rgba(10,22,40,.7);color:#fff;cursor:pointer;line-height:1}
+.vt-midia-add{display:flex;align-items:center;justify-content:center;width:160px;height:50px;border:1.5px dashed var(--border);border-radius:8px;font-size:12.5px;font-weight:700;color:var(--blue);cursor:pointer}
+.vt-cores{display:flex;gap:8px}
+.vt-cores button{width:30px;height:30px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px var(--border);cursor:pointer}
+.vt-cores button.on{box-shadow:0 0 0 2px var(--blue)}
+.vt-secao{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin:18px 0 10px;padding-top:14px;border-top:1px solid var(--border)}
+.vt-interesses{max-height:130px;overflow:auto}
+.vt-erro{color:var(--crimson,#c81e33);font-size:12.5px;min-height:16px}
+.badge-gray{background:var(--surface2,#f1f4f9);color:var(--text2,#475569)}
+.badge-purple{background:#f1ebff;color:#6d28d9}
+.lg-filtros{display:flex;flex-wrap:wrap;gap:6px}
+.lg-filtros button{border:1px solid var(--border,#e8edf5);background:#fff;padding:7px 12px;border-radius:99px;font:inherit;font-size:12.5px;font-weight:700;color:var(--text2,#475569);cursor:pointer}
+.lg-filtros button.on{background:var(--blue,#1a4d8f);border-color:var(--blue,#1a4d8f);color:#fff}
+.lg-filtros small{opacity:.7;font-weight:600;margin-left:3px}
+.lg-busca{width:220px;padding:8px 12px;font-size:13px}
+.mt-fonte{white-space:nowrap}
+.mt-modelo{display:flex;gap:36px;flex-wrap:wrap;margin-top:6px}
+.mt-modelo div{display:flex;flex-direction:column;gap:2px}
+.mt-modelo b{font-size:26px;color:var(--navy,#0a1628)}
+.mt-modelo span{font-size:12px;color:var(--text3);line-height:1.4}
+.mt-rostos{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.mt-rosto{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--border,#e8edf5);border-radius:10px;font-size:12.5px;opacity:.6}
+.mt-rosto.olhando{opacity:1;border-color:#9fd5b6;background:#f2fbf6}
+.mt-rosto i{width:10px;height:10px;border-radius:3px}
+.mt-rosto span{color:var(--text3)}
+.mt-rosto em{font-style:normal;color:var(--text3);font-size:11.5px}
+.mt-ao-vivo-titulo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px}
+.mt-pulso{width:9px;height:9px;border-radius:50%;background:#1b9e5b;box-shadow:0 0 0 0 rgba(27,158,91,.5);animation:mt-pulso 1.6s infinite}
+@keyframes mt-pulso{70%{box-shadow:0 0 0 10px rgba(27,158,91,0)}100%{box-shadow:0 0 0 0 rgba(27,158,91,0)}}
+.mt-ao-vivo-nums{display:flex;gap:36px;margin-top:12px;flex-wrap:wrap}
+.mt-ao-vivo-nums div{display:flex;flex-direction:column}
+.mt-ao-vivo-nums b{font-size:24px}
+.mt-ao-vivo-nums span{font-size:12px;color:var(--text3)}
+.camp-faixas{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 6px}
+#camp-faixas + .form-hint{display:block;margin-bottom:14px}
+.camp-faixas label{display:flex;align-items:center;gap:6px;padding:7px 11px;border:1px solid var(--border,#e8edf5);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;background:#fff}
+.camp-faixas input{accent-color:var(--blue,#1a4d8f);width:15px;height:15px}
+/* ─── Câmera & Presença (admin_presenca.js) ─── */
+.pr-regras{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.pr-regra{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:12px;background:var(--surface2);border-radius:var(--radius-sm)}
+.pr-regra.off{opacity:.45;pointer-events:none}
+.pr-regra-t{font-size:13px;font-weight:600}
+.pr-regra-s{font-size:12px;color:var(--text3);margin-top:2px}
+.pr-regra-bloco{flex-direction:column;align-items:stretch}
+.pr-regra-topo{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.pr-regra-topo b{font-size:18px;color:var(--blue);white-space:nowrap}
+.pr-regra input[type=range]{width:100%;accent-color:var(--blue);margin-top:8px}
+.pr-escala{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-top:2px}
+.pr-calibrar{align-self:flex-start;margin-top:8px;border:1px solid var(--border);background:#fff;border-radius:8px;padding:6px 10px;font:inherit;font-size:12px;font-weight:600;color:var(--blue);cursor:pointer}
+.pr-calibrar:disabled{color:var(--text4);cursor:default}
+.pr-medidor{position:relative;height:12px;border-radius:99px;background:var(--surface2);margin-top:14px;overflow:hidden}
+.pr-medidor-zona{position:absolute;inset:0 auto 0 0;background:rgba(27,158,91,.18)}
+.pr-medidor-pessoa{position:absolute;top:0;bottom:0;width:4px;margin-left:-2px;background:var(--navy,#0a1628);border-radius:2px;transition:left .3s}
+.pr-medidor-legenda{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-top:4px}
+
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ LOGIN SCREEN ═══════════════ -->
+<div id="login-screen" class="hidden">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-mark" id="l-mark">FM</div>
+      <div>
+        <div class="login-brand" id="l-brand">FlexMed</div>
+        <div class="login-unit" id="l-unit">Farmácia Central</div>
+      </div>
+    </div>
+    <div class="login-title">Painel Administrativo</div>
+    <div class="login-sub">Acesse com suas credenciais para gerenciar o totem.</div>
+    <div class="login-field">
+      <label class="login-label">Usuário</label>
+      <input class="login-input" id="l-user" type="text" placeholder="seu@email.com" autocomplete="username"/>
+    </div>
+    <div class="login-field">
+      <label class="login-label">Senha</label>
+      <input class="login-input" id="l-pass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <button class="login-btn" onclick="doLogin()">Entrar no painel</button>
+    <div class="login-err" id="l-err">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+      <span id="l-err-txt">Usuário ou senha incorretos.</span>
+    </div>
+    <div class="login-hint">Demo: usuário <b>admin</b> · senha <b>admin123</b></div>
+  </div>
+</div>
+
+<!-- ═══════════════ APP ═══════════════ -->
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-head">
+      <div class="sb-logo">
+        <div class="sb-mark" id="sb-mark">FM</div>
+        <div>
+          <div class="sb-brand" id="sb-brand">FlexMed</div>
+          <div class="sb-unit" id="sb-unit">Farmácia Central</div>
+        </div>
+      </div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-section">Visão geral</div>
+      <button class="sb-item on" data-page="dashboard" onclick="goPage('dashboard',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Painel geral
+      </button>
+      <button class="sb-item" data-page="analytics" onclick="goPage('analytics',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
+        Jornada do cliente
+      </button>
+      <div class="sb-section">Loja</div>
+      <button class="sb-item" data-page="pedidos" onclick="goPage('pedidos',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        Pedidos
+        <span class="sb-badge sb-badge-alerta" id="sb-pedidos" hidden></span>
+      </button>
+      <button class="sb-item" data-page="produtos" onclick="goPage('produtos',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8z"/><circle cx="7" cy="7" r="1.5"/></svg>
+        Catálogo
+      </button>
+      <button class="sb-item" data-page="categorias" onclick="goPage('categorias',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><path d="M6.5 10v4.5a1.5 1.5 0 0 0 1.5 1.5H14"/><rect x="14" y="13" width="7" height="7" rx="1.5"/></svg>
+        Categorias
+      </button>
+      <button class="sb-item" data-page="estoque" onclick="goPage('estoque',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8V21H3V8"/><rect x="1" y="3" width="22" height="5" rx="1"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+        Estoque
+        <span class="sb-badge sb-badge-aviso" id="sb-estoque" hidden></span>
+      </button>
+      <div class="sb-section">Marketing</div>
+      <button class="sb-item" data-page="marketing" onclick="goPage('marketing',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 6-7"/><path d="M17 7h3v3"/></svg>
+        Painel de marketing
+      </button>
+      <button class="sb-item" data-page="vitrine" onclick="goPage('vitrine',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="5" rx="1"/><rect x="3" y="10" width="18" height="5" rx="1.5" fill="currentColor" fill-opacity=".15"/><rect x="3" y="17" width="18" height="4" rx="1"/></svg>
+        Vitrine
+      </button>
+      <button class="sb-item" data-page="campanhas" onclick="goPage('campanhas',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+        Campanhas
+      </button>
+      <button class="sb-item" data-page="visao" onclick="goPage('visao',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        Audiência
+        <span class="sb-badge">AO VIVO</span>
+      </button>
+      <button class="sb-item" data-page="logs" onclick="goPage('logs',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
+        Atividade
+      </button>
+      <div class="sb-section">Inteligência</div>
+      <button class="sb-item" data-page="inteligencia" onclick="goPage('inteligencia',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z"/></svg>
+        Assistente IA
+      </button>
+      <button class="sb-item" data-page="iot" onclick="goPage('iot',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+        Câmera & presença
+      </button>
+      <div class="sb-section">Totem & marca</div>
+      <button class="sb-item" data-page="marca" onclick="goPage('marca',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18h1a3 3 0 0 0 0-6h-1a2 2 0 0 1 0-4h4a4 4 0 0 0 0-8h-4z"/><circle cx="7.5" cy="10.5" r=".8" fill="currentColor" stroke="none"/><circle cx="10" cy="7.5" r=".8" fill="currentColor" stroke="none"/></svg>
+        Identidade visual
+      </button>
+      <button class="sb-item" data-page="layout" onclick="goPage('layout',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
+        Layout do totem
+      </button>
+      <button class="sb-item" data-page="lojas" onclick="goPage('lojas',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+        Lojas & totens
+      </button>
+      <div class="sb-section">Sistema</div>
+      <button class="sb-item" data-page="acesso" onclick="goPage('acesso',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Equipe & acesso
+      </button>
+      <button class="sb-item" data-page="integracao" onclick="goPage('integracao',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        Integrações
+      </button>
+    </nav>
+    <div class="sb-foot">
+      <div class="sb-user">
+        <div class="sb-avatar" id="sb-avatar">AD</div>
+        <div>
+          <div class="sb-user-name" id="sb-uname">Admin</div>
+          <div class="sb-user-role">Administrador</div>
+        </div>
+        <button class="sb-logout" onclick="doLogout()" title="Voltar ao totem">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+  <div class="sb-fundo" onclick="alternarMenu(false)"></div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+    <div class="topbar">
+      <button class="tb-btn tb-btn-ghost tb-menu" type="button" onclick="alternarMenu()" aria-label="Abrir o menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        Menu
+      </button>
+      <div>
+        <div class="topbar-title" id="page-title">Dashboard</div>
+        <div class="topbar-sub" id="page-sub">Visão geral do totem</div>
+      </div>
+      <div class="topbar-right">
+        <button class="tb-btn tb-btn-ghost" onclick="verTotem()" title="Abrir totem em nova aba">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          Ver Totem
+        </button>
+        <button class="tb-btn" style="background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff" onclick="syncToTotem()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v6h6"/></svg>
+          Sincronizar
+        </button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ══ DASHBOARD ══ -->
+      <div class="page on" id="p-dashboard">
+        <div class="stat-row">
+          <div class="stat-card">
+            <div class="stat-card-icon ico-blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div class="stat-card-label">Pessoas hoje</div>
+            <div class="stat-card-value" id="d-visitors">—</div>
+            <div class="stat-card-sub" id="d-visitors-sub">pessoas na frente do totem</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon ico-green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+            </div>
+            <div class="stat-card-label">Produtos consultados</div>
+            <div class="stat-card-value" id="d-consults">—</div>
+            <div class="stat-card-sub" id="d-consults-sub">páginas de produto abertas hoje</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon ico-amber">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+            </div>
+            <div class="stat-card-label">NPS médio</div>
+            <div class="stat-card-value" id="d-nps">—</div>
+            <div class="stat-card-sub">de 5.0 possível</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon ico-blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a8 8 0 0 1 8 8c0 3-1.5 5.5-4 7l-1 3H9l-1-3C5.5 15.5 4 13 4 10a8 8 0 0 1 8-8z"/><path d="M9 21h6"/></svg>
+            </div>
+            <div class="stat-card-label">Sessões de uso hoje</div>
+            <div class="stat-card-value" id="d-ai">—</div>
+            <div class="stat-card-sub" id="d-ai-sub">—</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <div class="card-title">Pessoas por hora</div>
+                <div class="card-sub">Hoje, medido pela câmera do totem</div>
+              </div>
+            </div>
+            <div class="chart-bar-row" id="hour-chart"></div>
+            <div class="chart-labels" id="hour-labels"></div>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <div class="card-title">Buscas de hoje</div>
+                <div class="card-sub">Digitadas ou faladas no totem</div>
+              </div>
+            </div>
+            <div class="tbl-wrap">
+              <table>
+                <thead><tr><th>Produto</th><th>Buscas</th><th>Tendência</th></tr></thead>
+                <tbody id="top-tbl"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <div class="card-title">Status do sistema</div>
+                <div class="card-sub">Componentes ativos</div>
+              </div>
+            </div>
+            <div class="tbl-wrap">
+              <table>
+                <thead><tr><th>Componente</th><th>Status</th><th>Uptime</th></tr></thead>
+                <tbody>
+                  <tr><td class="td-bold">Totem principal</td><td><span class="badge badge-green"><span class="badge-dot"></span>Online</span></td><td class="td-mono">99.8%</td></tr>
+                  <tr><td class="td-bold">API Backend</td><td><span class="badge badge-green"><span class="badge-dot"></span>Online</span></td><td class="td-mono">99.9%</td></tr>
+                  <tr><td class="td-bold">Assistente IA</td><td><span class="badge badge-green"><span class="badge-dot"></span>Ativo</span></td><td class="td-mono">98.5%</td></tr>
+                  <tr><td class="td-bold">Libras / Câmera</td><td><span class="badge badge-amber"><span class="badge-dot"></span>Aguardando</span></td><td class="td-mono">—</td></tr>
+                  <tr><td class="td-bold">Banco de dados</td><td><span class="badge badge-green"><span class="badge-dot"></span>Conectado</span></td><td class="td-mono">100%</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <div class="card-title">Idiomas usados</div>
+                <div class="card-sub">Distribuição da semana</div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:14px;margin-top:8px">
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:6px"><span>Português</span><span style="font-weight:700">70%</span></div>
+                <div style="height:8px;background:var(--surface2);border-radius:99px"><div style="height:100%;width:70%;background:var(--blue);border-radius:99px"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:6px"><span>Inglês</span><span style="font-weight:700">20%</span></div>
+                <div style="height:8px;background:var(--surface2);border-radius:99px"><div style="height:100%;width:20%;background:#0ea5e9;border-radius:99px"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:6px"><span>Espanhol</span><span style="font-weight:700">10%</span></div>
+                <div style="height:8px;background:var(--surface2);border-radius:99px"><div style="height:100%;width:10%;background:var(--emerald);border-radius:99px"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ ANALYTICS ══ -->
+      <div class="page" id="p-analytics">
+        <div id="sess-painel"><div class="mt-vazio">Carregando…</div></div>
+      </div>
+
+      <!-- ══ PRODUTOS ══ -->
+      <!-- ══ CATÁLOGO (admin_catalogo.js) ══ -->
+      <div class="page" id="p-produtos">
+        <div id="cat-painel"><div class="mt-vazio">Carregando…</div></div>
+      </div>
+
+      <!-- ══ CATEGORIAS (admin_categorias.js) ══ -->
+      <div class="page" id="p-categorias">
+        <div id="ct-painel"><div class="mt-vazio">Carregando…</div></div>
+      </div>
+
+      <!-- ══ PAINEL DE MARKETING (admin_marketing.js) ══ -->
+      <div class="page" id="p-marketing">
+        <div id="mk-painel"><div class="mt-vazio">Carregando…</div></div>
+      </div>
+
+      <!-- ══ PEDIDOS (admin_pedidos.js) ══ -->
+      <div class="page" id="p-pedidos">
+        <div id="ped-painel"><div class="mt-vazio">Carregando…</div></div>
+      </div>
+
+      <!-- ══ ESTOQUE (admin_estoque.js) ══ -->
+      <div class="page" id="p-estoque">
+        <div id="est-painel"><div class="mt-vazio">Carregando…</div></div>
+      </div>
+
+      <!-- ══ INTELIGÊNCIA IA ══ -->
+      <div class="page" id="p-inteligencia">
+        <div class="ai-modules">
+          <div class="ai-mod active" onclick="toggleMod(this)">
+            <div class="ai-mod-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5z"/><path d="M9 21H5a2 2 0 0 1-2-2v-1a5 5 0 0 1 5-5h8a5 5 0 0 1 5 5v1a2 2 0 0 1-2 2h-4"/></svg></div>
+            <div><div class="ai-mod-name">Assistente por texto</div><div class="ai-mod-desc">Chatbot de orientação farmacêutica</div></div>
+            <div class="ai-mod-toggle"><label class="toggle-sw"><input type="checkbox" checked/><span class="toggle-track"></span></label></div>
+          </div>
+          <div class="ai-mod active" onclick="toggleMod(this)">
+            <div class="ai-mod-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg></div>
+            <div><div class="ai-mod-name">Assistente por voz</div><div class="ai-mod-desc">STT + TTS em tempo real</div></div>
+            <div class="ai-mod-toggle"><label class="toggle-sw"><input type="checkbox" checked/><span class="toggle-track"></span></label></div>
+          </div>
+          <div class="ai-mod" onclick="toggleMod(this)">
+            <div class="ai-mod-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+            <div><div class="ai-mod-name">Reconhecimento visual</div><div class="ai-mod-desc">Identificação de produtos pela câmera</div></div>
+            <div class="ai-mod-toggle"><label class="toggle-sw"><input type="checkbox"/><span class="toggle-track"></span></label></div>
+          </div>
+          <div class="ai-mod active" onclick="toggleMod(this)">
+            <div class="ai-mod-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8a6 6 0 0 0 6 6h0a6 6 0 0 0 6-6v-3a2 2 0 0 0-4 0z"/></svg></div>
+            <div><div class="ai-mod-name">Intérprete de Libras</div><div class="ai-mod-desc">Reconhecimento de sinais em LIBRAS</div></div>
+            <div class="ai-mod-toggle"><label class="toggle-sw"><input type="checkbox" checked/><span class="toggle-track"></span></label></div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head"><div><div class="card-title">Configurar assistente</div><div class="card-sub">Comportamento e personalidade da IA</div></div></div>
+            <div class="form-row full">
+              <div class="form-group">
+                <label class="form-label">Mensagem de boas-vindas</label>
+                <input class="form-input" id="ai-welcome" type="text" value="Como posso ajudá-lo hoje?"/>
+              </div>
+            </div>
+            <div class="form-row full">
+              <div class="form-group">
+                <label class="form-label">Tom do assistente</label>
+                <select class="form-input form-select" id="ai-tone">
+                  <option value="formal">Formal e profissional</option>
+                  <option value="friendly" selected>Amigável e acessível</option>
+                  <option value="concise">Conciso e direto</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row full">
+              <div class="form-group">
+                <label class="form-label">Instruções personalizadas</label>
+                <textarea class="form-input" id="ai-instructions" placeholder="Ex: Sempre mencionar que produtos controlados exigem receita. Não sugerir automedicação.">Sempre mencionar que produtos controlados exigem receita. Não sugerir automedicação para casos graves.</textarea>
+              </div>
+            </div>
+            <div class="save-bar">
+              <button class="btn-save" onclick="saveAI()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                Salvar configuração
+              </button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div><div class="card-title">Documentos para RAG</div><div class="card-sub">Conhecimento da sua farmácia</div></div></div>
+            <div style="border:2px dashed var(--border2);border-radius:var(--radius-sm);padding:24px;text-align:center;margin-bottom:16px">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:32px;height:32px;color:var(--text4);margin:0 auto 10px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+              <div style="font-size:13px;font-weight:600;color:var(--text2)">Arraste arquivos aqui</div>
+              <div style="font-size:12px;color:var(--text3);margin-top:4px">PDF, TXT, DOCX — máx. 20MB</div>
+              <button class="tb-btn tb-btn-ghost" style="margin-top:12px;font-size:12px" onclick="toast('Funcionalidade disponível com backend conectado')">Selecionar arquivo</button>
+            </div>
+            <div class="tbl-wrap">
+              <table>
+                <thead><tr><th>Arquivo</th><th>Status</th><th>Ação</th></tr></thead>
+                <tbody>
+                  <tr><td class="td-bold">catalogo_produtos.pdf</td><td><span class="badge badge-green">Indexado</span></td><td><button class="row-btn row-btn-del" onclick="toast('Documento removido do RAG')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:13px;height:13px"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/></svg>Remover</button></td></tr>
+                  <tr><td class="td-bold">orientacoes_farmaceuticas.txt</td><td><span class="badge badge-green">Indexado</span></td><td><button class="row-btn row-btn-del" onclick="toast('Documento removido do RAG')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:13px;height:13px"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/></svg>Remover</button></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ MARCA & CORES ══ -->
+      <div class="page" id="p-marca">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head"><div><div class="card-title">Identidade da marca</div><div class="card-sub">Aparece no cabeçalho e splash screen do totem</div></div></div>
+
+            <!-- LOGO UPLOAD -->
+            <div class="form-label" style="margin-bottom:8px">Logo da marca</div>
+            <div class="adm-logo-area" id="adm-logo-area" onclick="document.getElementById('adm-logo-input').click()">
+              <div id="adm-logo-preview" class="adm-logo-preview-inner">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:28px;height:28px;color:var(--text4)"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
+                <div style="font-size:12px;font-weight:600;color:var(--text3);margin-top:6px">Clique para fazer upload da logo</div>
+                <div style="font-size:11px;color:var(--text4);margin-top:2px">PNG, JPEG ou SVG • Máx. 512KB • Fundo transparente recomendado</div>
+              </div>
+              <input type="file" id="adm-logo-input" accept="image/png,image/jpeg,image/svg+xml,image/webp" style="display:none" onchange="admHandleLogoUpload(this)"/>
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:20px;margin-top:8px">
+              <button class="tb-btn tb-btn-ghost" style="font-size:12px;gap:6px" onclick="document.getElementById('adm-logo-input').click()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:13px;height:13px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Trocar logo
+              </button>
+              <button class="tb-btn tb-btn-ghost" style="font-size:12px;color:var(--red);gap:6px" onclick="admRemoveLogo()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:13px;height:13px"><polyline points="3,6 5,6 21,6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+                Remover logo
+              </button>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Nome da marca</label>
+                <input class="form-input" id="m-brand" type="text" value="FlexMed" oninput="syncPreview()"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Monograma (fallback)</label>
+                <input class="form-input" id="m-mono" type="text" maxlength="3" value="FM" oninput="syncPreview()"/>
+              </div>
+            </div>
+            <div class="form-row full">
+              <div class="form-group">
+                <label class="form-label">Nome da unidade</label>
+                <input class="form-input" id="m-unit" type="text" value="Farmácia Central" oninput="syncPreview()"/>
+              </div>
+            </div>
+            <div class="form-row full">
+              <div class="form-group">
+                <label class="form-label">Mensagem do assistente virtual</label>
+                <input class="form-input" id="m-assistant" type="text" value="Como posso ajudá-lo hoje?"/>
+              </div>
+            </div>
+            <div class="form-row full">
+              <div class="form-group">
+                <label class="form-label">Mensagem do banner de Libras</label>
+                <input class="form-input" id="m-libras" type="text" value="Atendimento em Libras disponível"/>
+              </div>
+            </div>
+
+            <!-- CORES -->
+            <div class="form-label" style="margin-bottom:10px">Paleta de cores</div>
+            <div class="swatches-row" id="adm-swatches" style="margin-bottom:16px"></div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Cor principal</label>
+                <div class="color-row">
+                  <div class="color-preview" id="cp1"></div>
+                  <input class="form-input color-input" id="m-accent-txt" type="text" value="#1A4D8F" oninput="syncColors(true)"/>
+                  <input type="color" id="m-accent" value="#1A4D8F" oninput="syncColors(false)" style="width:36px;height:36px;border:none;border-radius:8px;cursor:pointer;padding:0"/>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Cor secundária</label>
+                <div class="color-row">
+                  <div class="color-preview" id="cp2"></div>
+                  <input class="form-input color-input" id="m-accent2-txt" type="text" value="#2C66B0" oninput="syncColors(true)"/>
+                  <input type="color" id="m-accent2" value="#2C66B0" oninput="syncColors(false)" style="width:36px;height:36px;border:none;border-radius:8px;cursor:pointer;padding:0"/>
+                </div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Cor do header/nav</label>
+                <div class="color-row">
+                  <div class="color-preview" id="cp-navy" style="background:#0A1628"></div>
+                  <input class="form-input color-input" id="m-navy-txt" type="text" value="#0A1628" oninput="syncExtendedColor('m-navy','m-navy-txt','cp-navy')"/>
+                  <input type="color" id="m-navy" value="#0A1628" oninput="syncExtendedColorPicker('m-navy','m-navy-txt','cp-navy')" style="width:36px;height:36px;border:none;border-radius:8px;cursor:pointer;padding:0"/>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Cor de fundo</label>
+                <div class="color-row">
+                  <div class="color-preview" id="cp-bg" style="background:#F3F8FE"></div>
+                  <input class="form-input color-input" id="m-bg-txt" type="text" value="#F3F8FE" oninput="syncExtendedColor('m-bg','m-bg-txt','cp-bg')"/>
+                  <input type="color" id="m-bg" value="#F3F8FE" oninput="syncExtendedColorPicker('m-bg','m-bg-txt','cp-bg')" style="width:36px;height:36px;border:none;border-radius:8px;cursor:pointer;padding:0"/>
+                </div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Fundo dos cards</label>
+                <div class="color-row">
+                  <div class="color-preview" id="cp-surf" style="background:#FFFFFF"></div>
+                  <input class="form-input color-input" id="m-surf-txt" type="text" value="#FFFFFF" oninput="syncExtendedColor('m-surf','m-surf-txt','cp-surf')"/>
+                  <input type="color" id="m-surf" value="#FFFFFF" oninput="syncExtendedColorPicker('m-surf','m-surf-txt','cp-surf')" style="width:36px;height:36px;border:none;border-radius:8px;cursor:pointer;padding:0"/>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Cor do texto</label>
+                <div class="color-row">
+                  <div class="color-preview" id="cp-txt" style="background:#0A1628"></div>
+                  <input class="form-input color-input" id="m-text-txt" type="text" value="#0A1628" oninput="syncExtendedColor('m-text-color','m-text-txt','cp-txt')"/>
+                  <input type="color" id="m-text-color" value="#0A1628" oninput="syncExtendedColorPicker('m-text-color','m-text-txt','cp-txt')" style="width:36px;height:36px;border:none;border-radius:8px;cursor:pointer;padding:0"/>
+                </div>
+              </div>
+            </div>
+
+            <!-- EXPORT / IMPORT -->
+            <div style="display:flex;gap:8px;margin-top:4px;margin-bottom:16px;flex-wrap:wrap">
+              <button class="tb-btn tb-btn-ghost" style="font-size:12px" onclick="admExportTheme()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:13px;height:13px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Exportar tema
+              </button>
+              <button class="tb-btn tb-btn-ghost" style="font-size:12px" onclick="document.getElementById('adm-theme-import').click()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:13px;height:13px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Importar tema
+              </button>
+              <input type="file" id="adm-theme-import" accept=".json" style="display:none" onchange="admImportTheme(this)"/>
+            </div>
+
+            <div class="save-bar">
+              <button class="btn-save" onclick="saveBrand()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                Aplicar ao totem
+              </button>
+              <button class="btn-cancel" onclick="resetBrand()">Restaurar padrão</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div><div class="card-title">Pré-visualização</div><div class="card-sub">Como ficará no totem</div></div></div>
+            <div class="preview-wrap">
+              <div class="preview-phone">
+                <div class="prev-hdr" id="prev-hdr">
+                  <div class="prev-mark" id="prev-mark" style="background:linear-gradient(135deg,#1A4D8F,#2C66B0)">FM</div>
+                  <div>
+                    <div class="prev-brand" id="prev-brand">FlexMed</div>
+                    <div class="prev-unit" id="prev-unit">Farmácia Central</div>
+                  </div>
+                </div>
+                <div class="prev-body">
+                  <div class="prev-search">Buscar medicamento...</div>
+                  <div class="prev-card">
+                    <div class="prev-card-name">Paracetamol 750mg</div>
+                    <div class="prev-card-sub">Analgésico · 47 un.</div>
+                    <div class="prev-line" id="prev-line" style="background:linear-gradient(90deg,#1A4D8F,#2C66B0)"></div>
+                  </div>
+                  <div class="prev-card">
+                    <div class="prev-card-name">Vitamina C 1g</div>
+                    <div class="prev-card-sub">Suplemento · 32 un.</div>
+                    <div class="prev-line" style="background:linear-gradient(90deg,#1A4D8F,#2C66B0)" id="prev-line2"></div>
+                  </div>
+                </div>
+                <div class="prev-nav">
+                  <div class="prev-nav-item on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m3 10 9-7 9 7"/><path d="M5 10v10h14V10"/></svg>Início</div>
+                  <div class="prev-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8a6 6 0 0 0 6 6h0a6 6 0 0 0 6-6v-3a2 2 0 0 0-4 0z"/></svg>Libras</div>
+                  <div class="prev-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="14" rx="3"/><circle cx="9" cy="11" r="1"/><circle cx="15" cy="11" r="1"/></svg>IA</div>
+                  <div class="prev-nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/></svg>Carrinho</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ LAYOUT ══ -->
+      <div class="page" id="p-layout">
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-head"><div><div class="card-title">Módulos visíveis no totem</div><div class="card-sub">Ative ou desative seções que aparecem na página principal</div></div></div>
+          <div style="display:flex;flex-direction:column;gap:14px;margin-top:8px">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border:1px solid var(--border);border-radius:var(--radius-sm)">
+              <div><div style="font-size:13px;font-weight:600;color:var(--text)">Banner rotativo</div><div style="font-size:12px;color:var(--text3)">Carrossel de destaques e promoções no topo</div></div>
+              <label class="toggle-sw"><input type="checkbox" checked/><span class="toggle-track"></span></label>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border:1px solid var(--border);border-radius:var(--radius-sm)">
+              <div><div style="font-size:13px;font-weight:600;color:var(--text)">Quiz de saúde</div><div style="font-size:12px;color:var(--text3)">Seção educativa com perguntas sobre medicamentos</div></div>
+              <label class="toggle-sw"><input type="checkbox" checked/><span class="toggle-track"></span></label>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border:1px solid var(--border);border-radius:var(--radius-sm)">
+              <div><div style="font-size:13px;font-weight:600;color:var(--text)">Produtos em destaque</div><div style="font-size:12px;color:var(--text3)">Grade de produtos selecionados na página inicial</div></div>
+              <label class="toggle-sw"><input type="checkbox" checked/><span class="toggle-track"></span></label>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border:1px solid var(--border);border-radius:var(--radius-sm)">
+              <div><div style="font-size:13px;font-weight:600;color:var(--text)">Barra de Libras</div><div style="font-size:12px;color:var(--text3)">Banner no topo indicando suporte a Libras</div></div>
+              <label class="toggle-sw"><input type="checkbox" checked/><span class="toggle-track"></span></label>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border:1px solid var(--border);border-radius:var(--radius-sm)">
+              <div><div style="font-size:13px;font-weight:600;color:var(--text)">Atalhos rápidos (pills)</div><div style="font-size:12px;color:var(--text3)">Botões de acesso rápido: Mais procurados, IA, Quiz</div></div>
+              <label class="toggle-sw"><input type="checkbox" checked/><span class="toggle-track"></span></label>
+            </div>
+          </div>
+          <div class="save-bar">
+            <button class="btn-save" onclick="toast('Layout salvo e aplicado ao totem!')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+              Salvar layout
+            </button>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-head"><div><div class="card-title">Tipografia & Tamanhos</div><div class="card-sub">Personalização de fontes, pesos e tamanhos</div></div></div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Fonte principal (Google Fonts)</label>
+              <select class="form-input form-select" id="font-family" onchange="previewFont(this.value)">
+                <option value="Plus Jakarta Sans" selected>Plus Jakarta Sans (padrão)</option>
+                <option value="Inter">Inter</option>
+                <option value="Poppins">Poppins</option>
+                <option value="Nunito">Nunito</option>
+                <option value="DM Sans">DM Sans</option>
+                <option value="Outfit">Outfit</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tamanho base do texto</label>
+              <select class="form-input form-select" id="font-size">
+                <option value="14">14px (compacto)</option>
+                <option value="15" selected>15px (padrão)</option>
+                <option value="16">16px (acessível)</option>
+                <option value="17">17px (grande)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Peso do título dos produtos</label>
+              <select class="form-input form-select">
+                <option>600 – Semi-bold</option>
+                <option selected>700 – Bold</option>
+                <option>800 – Extra-bold</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Estilo do header da marca</label>
+              <select class="form-input form-select">
+                <option>Normal</option>
+                <option selected>Bold</option>
+                <option>Uppercase</option>
+              </select>
+            </div>
+          </div>
+          <div class="save-bar">
+            <button class="btn-save" onclick="toast('Tipografia aplicada ao totem!')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+              Aplicar tipografia
+            </button>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-head"><div><div class="card-title">Exportar / Importar Layout</div><div class="card-sub">Salve ou carregue um preset de layout white-label completo</div></div></div>
+          <div class="grid-2" style="margin-top:12px">
+            <div style="border:1px solid var(--border);border-radius:var(--radius-sm);padding:20px;display:flex;flex-direction:column;gap:12px">
+              <div style="font-size:13px;font-weight:700;color:var(--text)">📦 Exportar layout atual</div>
+              <div style="font-size:12px;color:var(--text3)">Exporta todas as configurações (marca, cores, fontes, módulos) como arquivo JSON para reuso ou backup.</div>
+              <button class="btn-save" style="width:fit-content" onclick="exportLayout()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:15px;height:15px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Exportar JSON
+              </button>
+            </div>
+            <div style="border:2px dashed var(--border2);border-radius:var(--radius-sm);padding:20px;display:flex;flex-direction:column;gap:12px">
+              <div style="font-size:13px;font-weight:700;color:var(--text)">📂 Importar layout</div>
+              <div style="font-size:12px;color:var(--text3)">Carregue um arquivo JSON exportado anteriormente para aplicar o layout ao totem.</div>
+              <input type="file" id="layout-file-input" accept=".json" style="display:none" onchange="importLayout(this)"/>
+              <button class="tb-btn tb-btn-ghost" style="width:fit-content" onclick="document.getElementById('layout-file-input').click()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:15px;height:15px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Selecionar arquivo
+              </button>
+            </div>
+          </div>
+          <div style="margin-top:16px">
+            <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px">Presets prontos (white-label)</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap" id="layout-presets">
+              <button class="tb-btn tb-btn-ghost" onclick="applyPreset('farmacia_azul')">💊 Farmácia Azul</button>
+              <button class="tb-btn tb-btn-ghost" onclick="applyPreset('clinica_verde')">🏥 Clínica Verde</button>
+              <button class="tb-btn tb-btn-ghost" onclick="applyPreset('laboratorio')">🔬 Laboratório</button>
+              <button class="tb-btn tb-btn-ghost" onclick="applyPreset('drogaria_gold')">⭐ Drogaria Gold</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><div><div class="card-title">Idiomas disponíveis</div><div class="card-sub">Quais idiomas aparecem no seletor do topo</div></div></div>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:8px">
+            <label style="display:flex;align-items:center;gap:8px;padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;font-weight:500">
+              <input type="checkbox" checked style="accent-color:var(--blue)"/> Português (PT)
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;font-weight:500">
+              <input type="checkbox" checked style="accent-color:var(--blue)"/> Inglês (EN)
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;padding:12px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;font-weight:500">
+              <input type="checkbox" checked style="accent-color:var(--blue)"/> Espanhol (ES)
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ ACESSO ══ -->
+      <div class="page" id="p-acesso">
+        <div class="grid-2" style="margin-bottom:20px">
+          <div class="card">
+            <div class="card-head"><div><div class="card-title">Alterar senha</div><div class="card-sub">Atualizar credencial de acesso</div></div></div>
+            <div class="form-row full"><div class="form-group"><label class="form-label">Senha atual</label><input class="form-input" id="pw-cur" type="password" placeholder="••••••••"/></div></div>
+            <div class="form-row full"><div class="form-group"><label class="form-label">Nova senha</label><input class="form-input" id="pw-new" type="password" placeholder="Mínimo 8 caracteres"/></div></div>
+            <div class="form-row full"><div class="form-group"><label class="form-label">Confirmar nova senha</label><input class="form-input" id="pw-conf" type="password" placeholder="Repita a nova senha"/></div></div>
+            <div class="save-bar">
+              <button class="btn-save" onclick="changePass()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Atualizar senha
+              </button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div><div class="card-title">Sessão & segurança</div></div></div>
+            <div style="display:flex;flex-direction:column;gap:12px;margin-top:4px">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--surface2);border-radius:var(--radius-sm)">
+                <div><div style="font-size:13px;font-weight:600">Logado como</div><div style="font-size:12px;color:var(--text3)" id="sess-user">admin</div></div>
+                <span class="badge badge-green">Ativo</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--surface2);border-radius:var(--radius-sm)">
+                <div><div style="font-size:13px;font-weight:600">Timeout de sessão</div><div style="font-size:12px;color:var(--text3)">Sair automaticamente após inatividade</div></div>
+                <select class="form-input form-select" style="width:auto;font-size:12px">
+                  <option>30 minutos</option>
+                  <option selected>1 hora</option>
+                  <option>4 horas</option>
+                  <option>Nunca</option>
+                </select>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--surface2);border-radius:var(--radius-sm)">
+                <div><div style="font-size:13px;font-weight:600">Acesso ao totem</div><div style="font-size:12px;color:var(--text3)">Painel acessível apenas por HTTPS</div></div>
+                <span class="badge badge-green">Seguro</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div><div class="card-title">Usuários do painel</div><div class="card-sub">Quem pode acessar este painel administrativo</div></div><button class="card-action" onclick="toast('Funcionalidade disponível com backend conectado')">+ Convidar</button></div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Usuário</th><th>Papel</th><th>Último acesso</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td class="td-bold">admin</td><td><span class="badge badge-blue">Superadmin</span></td><td class="td-mono">Agora</td><td><span class="badge badge-green">Ativo</span></td></tr>
+                <tr><td class="td-bold">farmacia@flexmed.com</td><td><span class="badge badge-amber">Gerente</span></td><td class="td-mono">Ontem 14:22</td><td><span class="badge badge-green">Ativo</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ INTEGRAÇÕES ══ -->
+      <div class="page" id="p-integracao">
+        <div class="grid-3">
+          <div class="card" style="display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="stat-card-icon ico-blue" style="margin:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M12 2a8 8 0 0 1 8 8c0 3-1.5 5.5-4 7l-1 3H9l-1-3C5.5 15.5 4 13 4 10a8 8 0 0 1 8-8z"/></svg></div>
+              <div><div style="font-size:13px;font-weight:700">Assistente Virtual</div><div style="font-size:11px;color:var(--text3)">Inteligência artificial integrada</div></div>
+            </div>
+            <span class="badge badge-green" style="width:fit-content"><span class="badge-dot"></span>Conectado</span>
+            <input class="form-input" type="password" placeholder="API Key" value="sk-••••••••••••••••"/>
+            <button class="btn-save" style="width:fit-content;font-size:12px" onclick="toast('Chave salva com segurança')">Salvar chave</button>
+          </div>
+          <div class="card" style="display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="stat-card-icon ico-amber" style="margin:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg></div>
+              <div><div style="font-size:13px;font-weight:700">Síntese de Voz</div><div style="font-size:11px;color:var(--text3)">Text-to-speech natural</div></div>
+            </div>
+            <span class="badge badge-amber" style="width:fit-content"><span class="badge-dot"></span>Aguardando chave</span>
+            <input class="form-input" type="password" placeholder="API Key ElevenLabs"/>
+            <button class="btn-save" style="width:fit-content;font-size:12px" onclick="toast('Chave salva com segurança')">Salvar chave</button>
+          </div>
+          <div class="card" style="display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="stat-card-icon ico-green" style="margin:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>
+              <div><div style="font-size:13px;font-weight:700">Pagamento (Stripe)</div><div style="font-size:11px;color:var(--text3)">Cartão, PIX, link</div></div>
+            </div>
+            <span class="badge badge-red" style="width:fit-content"><span class="badge-dot"></span>Não configurado</span>
+            <input class="form-input" type="password" placeholder="Publishable Key"/>
+            <button class="btn-save" style="width:fit-content;font-size:12px" onclick="toast('Chave salva com segurança')">Salvar chave</button>
+          </div>
+          <div class="card" style="display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="stat-card-icon ico-blue" style="margin:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5"/></svg></div>
+              <div><div style="font-size:13px;font-weight:700">Estoque (ERP)</div><div style="font-size:11px;color:var(--text3)">Webhook do sistema de gestão</div></div>
+            </div>
+            <span class="badge badge-red" style="width:fit-content"><span class="badge-dot"></span>Não configurado</span>
+            <input class="form-input" type="text" placeholder="URL do webhook"/>
+            <button class="btn-save" style="width:fit-content;font-size:12px" onclick="toast('Webhook salvo')">Salvar</button>
+          </div>
+          <div class="card" style="display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="stat-card-icon ico-green" style="margin:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+              <div><div style="font-size:13px;font-weight:700">WhatsApp (Twilio)</div><div style="font-size:11px;color:var(--text3)">Notificações e receitas</div></div>
+            </div>
+            <span class="badge badge-red" style="width:fit-content"><span class="badge-dot"></span>Não configurado</span>
+            <input class="form-input" type="password" placeholder="Auth Token Twilio"/>
+            <button class="btn-save" style="width:fit-content;font-size:12px" onclick="toast('Token salvo com segurança')">Salvar</button>
+          </div>
+          <div class="card" style="display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="stat-card-icon ico-amber" style="margin:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+              <div><div style="font-size:13px;font-weight:700">Câmera (RTSP)</div><div style="font-size:11px;color:var(--text3)">Stream para visão computacional</div></div>
+            </div>
+            <span class="badge badge-amber" style="width:fit-content"><span class="badge-dot"></span>Configurando</span>
+            <input class="form-input" type="text" placeholder="rtsp://..." value="rtsp://192.168.1.10:554/stream"/>
+            <button class="btn-save" style="width:fit-content;font-size:12px" onclick="toast('URL de câmera salva')">Salvar</button>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ══ PONTOS FÍSICOS ══ -->
+      <div class="page" id="p-lojas">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+          <input class="form-input" style="max-width:280px" type="text" placeholder="Buscar loja ou cidade..."/>
+          <button class="tb-btn tb-btn-primary" onclick="openNewLoja()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nova loja
+          </button>
+        </div>
+        <div class="stat-row" style="grid-template-columns:repeat(3,1fr)">
+          <div class="stat-card">
+            <div class="stat-card-icon ico-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg></div>
+            <div class="stat-card-label">Lojas ativas</div>
+            <div class="stat-card-value">4</div>
+            <div class="stat-card-sub stat-up">↑ 1 nova este mês</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon ico-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+            <div class="stat-card-label">Totens online</div>
+            <div class="stat-card-value">6</div>
+            <div class="stat-card-sub">3 por loja em média</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-icon ico-amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg></div>
+            <div class="stat-card-label">Uptime médio</div>
+            <div class="stat-card-value">98.6%</div>
+            <div class="stat-card-sub stat-up">↑ 0.4% vs mês anterior</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div><div class="card-title">Lojas cadastradas</div><div class="card-sub">Clique em uma loja para ver os totens vinculados</div></div></div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Loja</th><th>Cidade / UF</th><th>Totens</th><th>Responsável</th><th>Status</th><th>Ações</th></tr></thead>
+              <tbody id="lojas-tbl">
+                <tr>
+                  <td class="td-bold">Farmácia Central</td>
+                  <td>São Paulo – SP</td>
+                  <td><span class="badge badge-blue">2 totens</span></td>
+                  <td style="font-size:12px;color:var(--text3)">admin</td>
+                  <td><span class="badge badge-green"><span class="badge-dot"></span>Ativa</span></td>
+                  <td><div class="row-actions">
+                    <button class="row-btn row-btn-edit" onclick="toast('Abrindo detalhes da loja...')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:13px;height:13px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>Editar</button>
+                    <button class="row-btn" style="border:1px solid var(--border);color:var(--blue)" onclick="verTotem()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:13px;height:13px"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Ver totem</button>
+                  </div></td>
+                </tr>
+                <tr>
+                  <td class="td-bold">Unidade Norte</td>
+                  <td>Guarulhos – SP</td>
+                  <td><span class="badge badge-blue">2 totens</span></td>
+                  <td style="font-size:12px;color:var(--text3)">gerente</td>
+                  <td><span class="badge badge-green"><span class="badge-dot"></span>Ativa</span></td>
+                  <td><div class="row-actions">
+                    <button class="row-btn row-btn-edit" onclick="toast('Abrindo detalhes...')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:13px;height:13px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>Editar</button>
+                    <button class="row-btn" style="border:1px solid var(--border);color:var(--blue)" onclick="verTotem()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:13px;height:13px"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Ver totem</button>
+                  </div></td>
+                </tr>
+                <tr>
+                  <td class="td-bold">Unidade Sul</td>
+                  <td>Santo André – SP</td>
+                  <td><span class="badge badge-amber">1 totem</span></td>
+                  <td style="font-size:12px;color:var(--text3)">gerente</td>
+                  <td><span class="badge badge-amber"><span class="badge-dot"></span>Em setup</span></td>
+                  <td><div class="row-actions">
+                    <button class="row-btn row-btn-edit" onclick="toast('Abrindo detalhes...')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:13px;height:13px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>Editar</button>
+                    <button class="row-btn" style="border:1px solid var(--border);color:var(--blue)" onclick="verTotem()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:13px;height:13px"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Ver totem</button>
+                  </div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card" style="margin-top:20px">
+          <div class="card-head"><div><div class="card-title">Mapa de presença</div><div class="card-sub">Distribuição geográfica dos pontos</div></div></div>
+          <div style="background:var(--surface2);border-radius:var(--radius-sm);height:200px;display:flex;align-items:center;justify-content:center;border:2px dashed var(--border2);flex-direction:column;gap:10px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:36px;height:36px;color:var(--text4)"><path d="M12 21s7-5.3 7-11a7 7 0 0 0-14 0c0 5.7 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+            <div style="font-size:13px;font-weight:600;color:var(--text2)">Mapa integrado via Google Maps API</div>
+            <div style="font-size:12px;color:var(--text3)">Disponível com chave de API configurada em Integrações</div>
+            <button class="tb-btn tb-btn-ghost" style="font-size:12px" onclick="goPage('integracao', document.querySelector('.sb-item:last-child'))">Configurar Maps API</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ VITRINE ENTRE PRODUTOS (admin_vitrine.js) ══ -->
+      <div class="page" id="p-vitrine">
+        <div id="vt-painel"><div class="mt-vazio">Carregando…</div></div>
+      </div>
+
+      <!-- ══ LOGS (admin_logs.js) ══ -->
+      <div class="page" id="p-logs">
+        <div class="lj-abas lj-abas-pagina" id="atv-abas"></div>
+        <div id="atv-comportamento"></div>
+        <div id="atv-sessoes"></div>
+        <div id="logs-painel"></div>
+      </div>
+
+      <!-- ══ CÂMERA & PRESENÇA (admin_presenca.js) ══ -->
+      <div class="page" id="p-iot">
+        <div id="pres-painel"><div class="mt-vazio">Carregando…</div></div>
+      </div>
+
+      <!-- ══ CAMPANHAS ══ -->
+      <div class="page" id="p-campanhas">
+
+        <!-- Setup notice -->
+        <div id="camp-setup-notice" style="display:none;margin-bottom:20px">
+          <div class="card" style="border-color:var(--amber);background:var(--amber-lt)">
+            <div class="card-head">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" width="18" height="18" style="color:var(--amber)"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <div>
+                <div class="card-title" style="color:var(--amber)">Banco de dados não configurado</div>
+                <div class="card-sub">As tabelas de campanhas ainda não existem. Execute o setup automático uma única vez.</div>
+              </div>
+              <button class="tb-btn tb-btn-ghost" style="margin-left:auto;font-size:12px" onclick="document.getElementById('camp-setup-notice').style.display='none'">Dispensar</button>
+            </div>
+            <div style="background:rgba(0,0,0,.06);border-radius:8px;padding:16px 18px;font-size:13px;color:var(--text2);line-height:1.9">
+              <strong>Setup em 2 passos (leva menos de 1 minuto):</strong><br/>
+              <strong>1.</strong> Gere um token gratuito em
+              <code style="background:rgba(0,0,0,.08);padding:1px 6px;border-radius:4px">supabase.com → Settings → Access Tokens → Generate new token</code><br/>
+              <strong>2.</strong> Na raiz do projeto, execute:
+              <code style="display:block;margin-top:8px;background:var(--navy);color:#7dd3fc;padding:10px 14px;border-radius:8px;font-size:12px">python setup_db.py</code>
+              Cole o token quando solicitado — as três tabelas serão criadas automaticamente.
+            </div>
+          </div>
+        </div>
+
+        <!-- Standby config -->
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" width="18" height="18" style="color:var(--blue)"><path d="M18.36 6.64A9 9 0 1 1 5.64 6.64"/><path d="M12 2v10"/></svg>
+            <div>
+              <div class="card-title">Configuração do Standby</div>
+              <div class="card-sub">Tempo sem interação para ativar o modo standby</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Tempo de inatividade (segundos)</label>
+              <input class="form-input" id="standby-timeout" type="number" min="10" max="3600" value="60" placeholder="Ex: 60" />
+              <span class="form-hint">Mínimo: 10s · Máximo: 3600s (1 hora)</span>
+            </div>
+            <div class="form-group" style="justify-content:flex-end;align-items:flex-start;padding-top:22px">
+              <button class="btn-save" onclick="saveStandbyConfig()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="15" height="15"><path d="M20 6 9 17l-5-5"/></svg>
+                Salvar configuração
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Analytics rápido -->
+        <div class="cp-analytics-row" id="camp-analytics-row">
+          <div class="stat-card">
+            <div class="stat-card-label">Impressões hoje</div>
+            <div class="stat-card-value" id="camp-stat-impressions">—</div>
+            <div class="stat-card-sub">exibições de campanhas</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-label">Cliques hoje</div>
+            <div class="stat-card-value" id="camp-stat-clicks">—</div>
+            <div class="stat-card-sub">interações com anúncios</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-label">Taxa de clique</div>
+            <div class="stat-card-value" id="camp-stat-ctr">—</div>
+            <div class="stat-card-sub">cliques / impressões</div>
+          </div>
+        </div>
+
+        <!-- Tabela de campanhas -->
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Campanhas cadastradas</div>
+              <div class="card-sub" id="camp-count-sub">Carregando...</div>
+            </div>
+            <button class="tb-btn tb-btn-primary" style="margin-left:auto" onclick="openCampModal()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M12 5v14M5 12h14"/></svg>
+              Nova Campanha
+            </button>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr>
+                <th>Nome</th><th>Tipo</th><th>Público-alvo</th><th>Prioridade</th><th>Duração</th>
+                <th>Agendamento</th><th>Status</th><th>Ações</th>
+              </tr></thead>
+              <tbody id="camp-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ VISÃO COMPUTACIONAL ══ -->
+      <div class="page" id="p-visao">
+        <div id="aud-painel"><div class="mt-vazio">Carregando…</div></div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- MODAL NOVO PRODUTO -->
+<!-- Modal: Nova / Editar Campanha -->
+<div class="modal-bg" id="camp-modal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-title" id="camp-modal-title">Nova Campanha</div>
+    <div class="modal-sub">Preencha as informações da campanha e faça upload das mídias.</div>
+    <input type="hidden" id="camp-id" />
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Nome da campanha *</label>
+        <input class="form-input" id="camp-name" type="text" placeholder="Ex: Promoção de Vitaminas" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tipo de mídia *</label>
+        <select class="form-input form-select" id="camp-type" onchange="onCampTypeChange()">
+          <option value="image">Imagem</option>
+          <option value="video">Vídeo</option>
+          <option value="carousel">Carrossel</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Duração (segundos)</label>
+        <input class="form-input" id="camp-dur" type="number" min="3" max="300" value="10" />
+        <span class="form-hint">Para vídeo: duração máxima antes de avançar</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Prioridade (0–100)</label>
+        <input class="form-input" id="camp-priority" type="number" min="0" max="100" value="0" />
+        <span class="form-hint">Maior valor = exibido primeiro</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Público-alvo (faixa etária)</label>
+      <div class="camp-faixas" id="camp-faixas">
+        <label><input type="checkbox" value="18-28" /> 18–28 anos</label>
+        <label><input type="checkbox" value="28-38" /> 28–38 anos</label>
+        <label><input type="checkbox" value="38-48" /> 38–48 anos</label>
+        <label><input type="checkbox" value="48-58" /> 48–58 anos</label>
+        <label><input type="checkbox" value="58-68" /> 58–68 anos</label>
+        <label><input type="checkbox" value="68-78" /> 68–78 anos</label>
+        <label><input type="checkbox" value="78-88" /> 78–88 anos</label>
+      </div>
+      <span class="form-hint">Sem nenhuma marcada, o anúncio aparece para todos. Com faixas marcadas, ele é exibido quando a câmera detectar esse público olhando para o totem — e com mais frequência quanto maior for essa parcela do público.</span>
+    </div>
+
+    <div class="form-group">
+      <label class="lj-check" style="font-size:13px;font-weight:600"><input type="checkbox" id="camp-vitrine" checked style="width:16px;height:16px;accent-color:var(--blue)"> Mostrar também como banner entre os produtos do totem</label>
+      <span class="form-hint">Aparece a cada poucas linhas da lista de produtos (o intervalo fica em Marketing › Vitrine), respeitando o público-alvo acima.</span>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Início do agendamento</label>
+        <input class="form-input" id="camp-start" type="datetime-local" />
+        <span class="form-hint">Deixe em branco para exibir imediatamente</span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Fim do agendamento</label>
+        <input class="form-input" id="camp-end" type="datetime-local" />
+        <span class="form-hint">Deixe em branco para exibir indefinidamente</span>
+      </div>
+    </div>
+
+    <!-- Upload de mídia -->
+    <div class="form-group" style="margin-bottom:14px">
+      <label class="form-label" id="camp-media-lbl">Mídia da campanha</label>
+
+      <!-- Drag & drop upload -->
+      <div class="media-upload-area" id="camp-drop-area"
+        ondragover="event.preventDefault();this.style.borderColor='var(--blue)'"
+        ondragleave="this.style.borderColor=''"
+        ondrop="handleCampDrop(event)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" width="32" height="32"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <p>Arraste arquivos aqui ou <button type="button" style="color:var(--blue);font-weight:700;background:none;border:none;cursor:pointer;font-size:13px" onclick="document.getElementById('camp-file-input').click()">selecione do computador</button></p>
+        <span id="camp-upload-hint">JPG, PNG, WEBP, GIF, MP4, WEBM — máx. 50MB por arquivo</span>
+      </div>
+      <input type="file" id="camp-file-input" multiple accept="image/*,video/mp4,video/webm" style="display:none" onchange="handleCampFiles(this.files)" />
+
+      <!-- Preview das mídias -->
+      <div class="media-preview-list" id="camp-media-preview"></div>
+
+      <!-- Progresso de upload -->
+      <div id="camp-upload-progress" style="display:none;margin-top:8px">
+        <div style="font-size:12px;color:var(--text3);margin-bottom:4px" id="camp-upload-label">Enviando...</div>
+        <div style="height:4px;border-radius:99px;background:var(--border);overflow:hidden">
+          <div id="camp-upload-bar" style="height:100%;background:var(--blue);transition:width .3s;width:0%"></div>
+        </div>
+      </div>
+
+      <!-- Alternativa: URL manual -->
+      <details style="margin-top:10px">
+        <summary style="font-size:12px;color:var(--text3);cursor:pointer">Ou cole URLs diretamente</summary>
+        <textarea class="form-input" id="camp-media-urls" rows="3" style="margin-top:8px"
+          placeholder="https://exemplo.com/imagem.jpg&#10;https://exemplo.com/banner.png"></textarea>
+        <span class="form-hint" id="camp-media-hint">Uma URL por linha</span>
+      </details>
+
+      <!-- URLs salvas (hidden) -->
+      <input type="hidden" id="camp-media-urls-stored" />
+    </div>
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+      <label class="form-label" style="margin:0">Ativa</label>
+      <label class="toggle-sw">
+        <input type="checkbox" id="camp-active" checked />
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeCampModal()">Cancelar</button>
+      <button class="btn-save" onclick="saveCampaign()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14"><path d="M20 6 9 17l-5-5"/></svg>
+        Salvar campanha
+      </button>
+    </div>
+  </div>
+</div>
+
+<template id="prod-img-fallback"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:16px;height:16px;color:var(--text4,#bcc8d8)"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg></template>
+
+<div id="adm-toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+  <span id="toast-msg">Salvo com sucesso.</span>
+</div>
+
+<script src="api.js"></script>
+<script src="admin_metricas.js?v=3"></script>
+<script src="admin_presenca.js?v=2"></script>
+<script src="admin_logs.js?v=2"></script>
+<script src="admin_atividade.js?v=1"></script>
+<script src="admin_vitrine.js?v=3"></script>
+<script src="admin_catalogo.js?v=2"></script>
+<script src="admin_estoque.js?v=2"></script>
+<script src="admin_pedidos.js?v=1"></script>
+<script src="icones.js?v=1"></script>
+<script src="admin_categorias.js?v=2"></script>
+<script src="admin_marketing.js?v=1"></script>
+<script>
+// ─── SYNC TO TOTEM ───────────────────────────────────────
+function syncToTotem() {
+  // Save brand config to sessionStorage so totem can pick it up
+  const brandData = {
+    brand: document.getElementById('m-brand')?.value || 'FlexMed',
+    unit: document.getElementById('m-unit')?.value || 'Farmácia Central',
+    monogram: document.getElementById('m-mono')?.value || 'FM',
+    accent: document.getElementById('m-accent')?.value || '#1A4D8F',
+    accent2: document.getElementById('m-accent2')?.value || '#2C66B0',
+    assistantMessage: document.getElementById('m-assistant')?.value || 'Como posso ajudá-lo hoje?',
+    librasMessage: document.getElementById('m-libras')?.value || 'Atendimento em Libras disponível',
+    lang: 'pt'
+  };
+  sessionStorage.setItem('flexmed_whitelabel_config', JSON.stringify(brandData));
+  toast('✅ Configurações sincronizadas! Abra o totem para visualizar.');
+}
+
+// ─── LOJAS ───────────────────────────────────────────────
+let lojas = [
+  { id:1, nome:'Farmácia Central', cidade:'São Paulo – SP', totens:2, responsavel:'admin', status:'ativa' },
+  { id:2, nome:'Unidade Norte', cidade:'Guarulhos – SP', totens:2, responsavel:'gerente', status:'ativa' },
+  { id:3, nome:'Unidade Sul', cidade:'Santo André – SP', totens:1, responsavel:'gerente', status:'setup' }
+];
+let nextLojaId = 4;
+
+function openNewLoja() {
+  toast('Modal de nova loja — disponível com backend conectado');
+}
+
+// exportLayout, importLayout, PRESETS e applyPreset ficam no script principal abaixo
+
+function previewFont(font) {
+  toast(`Fonte "${font}" será aplicada ao totem ao salvar.`);
+}
+
+</script><script>
+// ─── AUTH ────────────────────────────────────────────────
+const USERS = { admin: 'admin123', gerente: 'gerente456' };
+let currentUser = null;
+
+function doLogin() {
+  const u = document.getElementById('l-user').value.trim();
+  const p = document.getElementById('l-pass').value;
+  const err = document.getElementById('l-err');
+  err.classList.remove('on');
+  if (USERS[u] && USERS[u] === p) {
+    currentUser = u;
+    sessionStorage.setItem('adm_user', u);
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('app').classList.add('on');
+    document.getElementById('sb-uname').textContent = u;
+    document.getElementById('sb-avatar').textContent = u.slice(0,2).toUpperCase();
+    document.getElementById('sess-user').textContent = u;
+    initApp();
+  } else {
+    document.getElementById('l-err-txt').textContent = 'Usuário ou senha incorretos.';
+    err.classList.add('on');
+    document.getElementById('l-pass').value = '';
+    document.getElementById('l-pass').focus();
+  }
+}
+
+// Aberto por cima do totem (painel_admin.js): fecha o painel e o totem, que
+// nunca saiu da tela, continua com a câmera ligada. Aberto sozinho: como antes.
+function painelSobreTotem() {
+  try { return window.parent !== window && !!window.parent.FlexPainelAdmin; } catch (_) { return false; }
+}
+
+function verTotem() {
+  if (painelSobreTotem()) window.parent.FlexPainelAdmin.fechar();
+  else window.open('index.html', '_blank');
+}
+
+// Sem senha na demonstração: "sair" volta para o totem
+function doLogout() {
+  if (painelSobreTotem()) window.parent.FlexPainelAdmin.fechar();
+  else location.href = '/';
+}
+
+function changePass() {
+  const cur = document.getElementById('pw-cur').value;
+  const nw = document.getElementById('pw-new').value;
+  const cf = document.getElementById('pw-conf').value;
+  if (!cur || !nw || !cf) { toast('Preencha todos os campos.'); return; }
+  if (USERS[currentUser] !== cur) { toast('Senha atual incorreta.'); return; }
+  if (nw.length < 8) { toast('A nova senha precisa ter ao menos 8 caracteres.'); return; }
+  if (nw !== cf) { toast('As senhas não coincidem.'); return; }
+  USERS[currentUser] = nw;
+  document.getElementById('pw-cur').value = '';
+  document.getElementById('pw-new').value = '';
+  document.getElementById('pw-conf').value = '';
+  toast('Senha atualizada com sucesso!');
+}
+
+// Acesso direto, sem senha (demonstração): entra como admin; o botão discreto do totem abre esta página
+const saved = sessionStorage.getItem('adm_user') || 'admin';
+sessionStorage.setItem('adm_user', saved);
+if (saved && USERS[saved]) {
+  currentUser = saved;
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('app').classList.add('on');
+  document.getElementById('sb-uname').textContent = saved;
+  document.getElementById('sb-avatar').textContent = saved.slice(0,2).toUpperCase();
+  document.getElementById('sess-user').textContent = saved;
+  // os módulos admin_*.js carregam depois deste script: inicia quando todos rodaram (DOMContentLoaded),
+  // sem esperar fontes e imagens (o 'load' pela rede do totem demorava e o painel ficava sem dados)
+  document.addEventListener('DOMContentLoaded', () => {
+    initApp(); goPage('dashboard');
+    // aberto por cima do totem: tira o aviso "Carregando o painel…"
+    try { if (window.parent !== window && window.parent.FlexPainelAdmin) window.parent.FlexPainelAdmin.pronto(); } catch (_) {}
+  });
+}
+
+// ─── NAVIGATION ──────────────────────────────────────────
+const PAGE_META = {
+  dashboard:    { title: 'Painel geral',          sub: 'Como o totem está indo hoje' },
+  analytics:    { title: 'Jornada do cliente',    sub: 'Como as pessoas usam o totem: funil, toques e desistência' },
+  pedidos:      { title: 'Pedidos',               sub: 'Pedidos feitos no totem para retirar no balcão' },
+  produtos:     { title: 'Catálogo',              sub: 'Cadastro completo dos produtos: fotos, preço, SKU, código de barras e estoque' },
+  estoque:      { title: 'Estoque',               sub: 'Saldo, alertas, lotes e validade, movimentações e reposição' },
+  vitrine:      { title: 'Vitrine',               sub: 'Banners, carrosséis, vídeos e destaques entre as linhas de produtos do totem' },
+  campanhas:    { title: 'Campanhas',             sub: 'Campanhas exibidas no modo de espera (standby), com público-alvo por idade' },
+  marketing:    { title: 'Painel de marketing',   sub: 'Alcance, atenção, funil até a venda, público, campanhas, horários e demanda — para planejar as próximas campanhas' },
+  categorias:   { title: 'Categorias',            sub: 'Categorias e subcategorias que organizam o catálogo e a navegação do totem' },
+  visao:        { title: 'Audiência',             sub: 'Público por faixa etária e desempenho dos anúncios — dados anônimos (LGPD)' },
+  inteligencia: { title: 'Assistente IA',         sub: 'Configurações dos módulos de IA' },
+  iot:          { title: 'Câmera & presença',     sub: 'A câmera do totem acorda a tela quando alguém se aproxima' },
+  marca:        { title: 'Identidade visual',     sub: 'Marca e cores do totem' },
+  layout:       { title: 'Layout do totem',       sub: 'Módulos, exportação e white-label' },
+  lojas:        { title: 'Lojas & totens',        sub: 'Gestão das lojas e totens cadastrados' },
+  logs:         { title: 'Atividade',             sub: 'Onde os clientes tocam, quanto tempo olham cada tela e quais produtos veem — anônimo (LGPD)' },
+  acesso:       { title: 'Equipe & acesso',       sub: 'Credenciais e permissões' },
+  integracao:   { title: 'Integrações',           sub: 'APIs e serviços externos' }
+};
+
+// Telas estreitas (≤ 700 px, como o totem em pé): o menu lateral é uma gaveta
+function alternarMenu(abrir) {
+  document.body.classList.toggle('menu-aberto', abrir);
+}
+
+function goPage(id, btn) {
+  if (btn) alternarMenu(false);   // escolheu no menu: fecha a gaveta (a abertura da página não fecha)
+  btn = btn || document.querySelector(`.sb-item[data-page="${id}"]`);
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.sb-item').forEach(b => b.classList.remove('on'));
+  document.getElementById('p-' + id).classList.add('on');
+  if (btn) btn.classList.add('on');
+  const meta = PAGE_META[id] || {};
+  document.getElementById('page-title').textContent = meta.title || id;
+  document.getElementById('page-sub').textContent = meta.sub || '';
+
+  if (id === 'campanhas') {
+    loadCampaigns();
+    const saved = JSON.parse(localStorage.getItem('flexmed_whitelabel_config') || '{}');
+    if (saved.standby_timeout_seconds) {
+      document.getElementById('standby-timeout').value = saved.standby_timeout_seconds;
+    }
+  }
+  if (id === 'dashboard') carregarDashboard();
+  if (id === 'analytics') carregarSessoes();
+  if (id === 'visao') carregarAudiencia();
+  if (id === 'iot') carregarPresenca();
+  if (id === 'logs') carregarAtividade();
+  if (id === 'vitrine') carregarVitrine();
+  if (id === 'pedidos') carregarPedidos();
+  if (id === 'produtos') carregarCatalogo();
+  if (id === 'estoque') carregarEstoque();
+  if (id === 'marketing') carregarMarketing();
+  if (id === 'categorias') carregarCategorias();
+}
+
+// ─── TOAST ───────────────────────────────────────────────
+function toast(msg) {
+  const el = document.getElementById('adm-toast');
+  document.getElementById('toast-msg').textContent = msg;
+  el.classList.add('on');
+  clearTimeout(window._tadm);
+  window._tadm = setTimeout(() => el.classList.remove('on'), 3000);
+}
+
+// ─── DATA ────────────────────────────────────────────────
+const SWATCHES_DATA = [
+  { a: '#1A4D8F', b: '#2C66B0' },
+  { a: '#0F3D91', b: '#2757B5' },
+  { a: '#0B4F6C', b: '#157A9E' },
+  { a: '#14532D', b: '#1B7A43' },
+  { a: '#7C2D12', b: '#B45309' },
+  { a: '#5B21B6', b: '#7C3AED' },
+  { a: '#0A1628', b: '#1E3A5F' }
+];
+
+// Catálogo, estoque e pedidos: admin_catalogo.js, admin_estoque.js, admin_pedidos.js (backend/loja.py)
+
+// ─── BRAND ───────────────────────────────────────────────
+function syncPreview() {
+  const brand = document.getElementById('m-brand').value || 'FlexMed';
+  const mono = document.getElementById('m-mono').value || 'FM';
+  const unit = document.getElementById('m-unit').value || 'Farmácia Central';
+  document.getElementById('prev-brand').textContent = brand;
+  document.getElementById('prev-unit').textContent = unit;
+  document.getElementById('prev-mark').textContent = mono;
+  document.getElementById('sb-brand').textContent = brand;
+  document.getElementById('sb-unit').textContent = unit;
+  document.getElementById('sb-mark').textContent = mono;
+}
+
+function syncColors(fromText) {
+  const a = fromText ? document.getElementById('m-accent-txt').value : document.getElementById('m-accent').value;
+  const b = fromText ? document.getElementById('m-accent2-txt').value : document.getElementById('m-accent2').value;
+  if (/^#[0-9A-Fa-f]{6}$/.test(a)) {
+    document.getElementById('cp1').style.background = a;
+    document.getElementById('m-accent').value = a;
+    document.getElementById('m-accent-txt').value = a.toUpperCase();
+    document.getElementById('prev-mark').style.background = `linear-gradient(135deg,${a},${b||a})`;
+    ['prev-line','prev-line2'].forEach(id => document.getElementById(id).style.background = `linear-gradient(90deg,${a},${b||a})`);
+  }
+  if (/^#[0-9A-Fa-f]{6}$/.test(b)) {
+    document.getElementById('cp2').style.background = b;
+    document.getElementById('m-accent2').value = b;
+    document.getElementById('m-accent2-txt').value = b.toUpperCase();
+  }
+}
+
+function renderSwatchesAdm() {
+  const wrap = document.getElementById('adm-swatches');
+  if (!wrap) return;
+  wrap.innerHTML = SWATCHES_DATA.map(s => `
+    <div class="swatch" style="background:linear-gradient(135deg,${s.a},${s.b})" onclick="pickSwatch('${s.a}','${s.b}')"></div>
+  `).join('');
+}
+
+function pickSwatch(a, b) {
+  document.getElementById('m-accent').value = a;
+  document.getElementById('m-accent-txt').value = a;
+  document.getElementById('m-accent2').value = b;
+  document.getElementById('m-accent2-txt').value = b;
+  syncColors(false);
+}
+
+function saveBrand() {
+  syncPreview();
+  syncColors(true);
+
+  const brand   = document.getElementById('m-brand').value.trim()   || 'FlexMed';
+  const mono    = document.getElementById('m-mono').value.trim()     || 'FM';
+  const unit    = document.getElementById('m-unit').value.trim()     || 'Farmácia Central';
+  const accent  = document.getElementById('m-accent-txt').value.trim().toUpperCase();
+  const accent2 = document.getElementById('m-accent2-txt').value.trim().toUpperCase();
+  const assistant = (document.getElementById('m-assistant') ? document.getElementById('m-assistant').value.trim() : '') || 'Como posso ajudá-lo hoje?';
+  const libras    = (document.getElementById('m-libras')    ? document.getElementById('m-libras').value.trim()    : '') || 'Atendimento em Libras disponível';
+
+  // Extended colors
+  const navyColor    = (document.getElementById('m-navy-txt')?.value    || '').trim().toUpperCase();
+  const bgColor      = (document.getElementById('m-bg-txt')?.value      || '').trim().toUpperCase();
+  const surfaceColor = (document.getElementById('m-surf-txt')?.value    || '').trim().toUpperCase();
+  const textColor    = (document.getElementById('m-text-txt')?.value    || '').trim().toUpperCase();
+
+  const isHex = v => /^#[0-9A-Fa-f]{6}$/.test(v);
+
+  const wlConfig = {
+    brand,
+    monogram: mono,
+    unit,
+    accent:        isHex(accent)        ? accent        : '#1A4D8F',
+    accent2:       isHex(accent2)       ? accent2       : '#2C66B0',
+    navyColor:     isHex(navyColor)     ? navyColor     : '#0A1628',
+    bgColor:       isHex(bgColor)       ? bgColor       : '#F3F8FE',
+    surfaceColor:  isHex(surfaceColor)  ? surfaceColor  : '#FFFFFF',
+    textColor:     isHex(textColor)     ? textColor     : '#0A1628',
+    logoDataUrl:   admLogoDataUrl || '',
+    assistantMessage: assistant,
+    librasMessage:    libras,
+    lang: 'pt'
+  };
+
+  localStorage.setItem('flexmed_whitelabel_config', JSON.stringify(wlConfig));
+  toast('✅ Marca, cores e logo salvas e sincronizadas com o totem!');
+}
+
+function resetBrand() {
+  document.getElementById('m-brand').value = 'FlexMed';
+  document.getElementById('m-mono').value = 'FM';
+  document.getElementById('m-unit').value = 'Farmácia Central';
+  document.getElementById('m-accent').value = '#1A4D8F';
+  document.getElementById('m-accent-txt').value = '#1A4D8F';
+  document.getElementById('m-accent2').value = '#2C66B0';
+  document.getElementById('m-accent2-txt').value = '#2C66B0';
+  if (document.getElementById('m-assistant')) document.getElementById('m-assistant').value = 'Como posso ajudá-lo hoje?';
+  if (document.getElementById('m-libras'))    document.getElementById('m-libras').value    = 'Atendimento em Libras disponível';
+  // Extended colors
+  const setExt = (pickId, txtId, cpId, val) => {
+    const pk = document.getElementById(pickId); if (pk) pk.value = val;
+    const tx = document.getElementById(txtId);  if (tx) tx.value = val;
+    const cp = document.getElementById(cpId);   if (cp) cp.style.background = val;
+  };
+  setExt('m-navy','m-navy-txt','cp-navy','#0A1628');
+  setExt('m-bg','m-bg-txt','cp-bg','#F3F8FE');
+  setExt('m-surf','m-surf-txt','cp-surf','#FFFFFF');
+  setExt('m-text-color','m-text-txt','cp-txt','#0A1628');
+  // Logo
+  admLogoDataUrl = '';
+  const preview = document.getElementById('adm-logo-preview');
+  if (preview) {
+    preview.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:28px;height:28px;color:var(--text4)"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg><div style="font-size:12px;font-weight:600;color:var(--text3);margin-top:6px">Clique para fazer upload da logo</div><div style="font-size:11px;color:var(--text4);margin-top:2px">PNG, JPEG ou SVG • Máx. 512KB • Fundo transparente recomendado</div>`;
+  }
+  syncPreview();
+  syncColors(false);
+  localStorage.removeItem('flexmed_whitelabel_config');
+  toast('Padrão restaurado e totem redefinido.');
+}
+
+function saveAI() { toast('Configuração da IA salva com sucesso!'); }
+
+// ─── ADMIN LOGO ─────────────────────────────────────────
+let admLogoDataUrl = '';
+
+function admHandleLogoUpload(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { toast('Formato inválido. Use PNG, JPEG ou SVG.'); return; }
+  if (file.size > 512 * 1024) { toast('Logo muito grande. Máximo 512KB.'); return; }
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    admLogoDataUrl = e.target.result;
+    const preview = document.getElementById('adm-logo-preview');
+    if (preview) {
+      preview.innerHTML = `<img src="${admLogoDataUrl}" style="max-height:64px;max-width:100%;object-fit:contain;border-radius:8px;" alt="Logo" />`;
+    }
+    // Also update the totem preview mark
+    const prevMark = document.getElementById('prev-mark');
+    if (prevMark) {
+      prevMark.innerHTML = `<img src="${admLogoDataUrl}" style="width:100%;height:100%;object-fit:contain;border-radius:6px;" />`;
+    }
+    toast('Logo carregada. Clique em "Aplicar ao totem" para salvar.');
+  };
+  reader.readAsDataURL(file);
+}
+
+function admRemoveLogo() {
+  admLogoDataUrl = '';
+  const preview = document.getElementById('adm-logo-preview');
+  if (preview) {
+    const mono = document.getElementById('m-mono')?.value || 'FM';
+    preview.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:28px;height:28px;color:var(--text4)"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg><div style="font-size:12px;font-weight:600;color:var(--text3);margin-top:6px">Clique para fazer upload da logo</div><div style="font-size:11px;color:var(--text4);margin-top:2px">PNG, JPEG ou SVG • Máx. 512KB • Fundo transparente recomendado</div>`;
+  }
+  const prevMark = document.getElementById('prev-mark');
+  if (prevMark) prevMark.textContent = document.getElementById('m-mono')?.value || 'FM';
+  toast('Logo removida. Monograma será usado como fallback.');
+}
+
+// ─── EXTENDED COLORS ─────────────────────────────────────
+function syncExtendedColor(pickerId, textId, previewId) {
+  const txt = document.getElementById(textId);
+  const picker = document.getElementById(pickerId);
+  const preview = document.getElementById(previewId);
+  if (!txt) return;
+  const val = txt.value.trim().toUpperCase();
+  if (/^#[0-9A-F]{6}$/i.test(val)) {
+    if (picker) picker.value = val;
+    if (preview) preview.style.background = val;
+  }
+}
+
+function syncExtendedColorPicker(pickerId, textId, previewId) {
+  const picker = document.getElementById(pickerId);
+  const txt = document.getElementById(textId);
+  const preview = document.getElementById(previewId);
+  if (!picker) return;
+  const val = picker.value.toUpperCase();
+  if (txt) txt.value = val;
+  if (preview) preview.style.background = val;
+}
+
+// ─── EXPORT / IMPORT THEME ──────────────────────────────
+function admExportTheme() {
+  const saved = localStorage.getItem('flexmed_whitelabel_config');
+  const config = saved ? JSON.parse(saved) : {};
+  const brand = document.getElementById('m-brand')?.value || config.brand || 'FlexMed';
+  const exportData = { ...config, brand };
+  const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${brand.toLowerCase().replace(/\s+/g, '-')}-tema.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Tema exportado como JSON com sucesso!');
+}
+
+function admImportTheme(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const raw = JSON.parse(e.target.result);
+      localStorage.setItem('flexmed_whitelabel_config', JSON.stringify(raw));
+      // Pre-fill form
+      if (raw.brand)    document.getElementById('m-brand').value = raw.brand;
+      if (raw.monogram) document.getElementById('m-mono').value  = raw.monogram;
+      if (raw.unit)     document.getElementById('m-unit').value  = raw.unit;
+      if (raw.accent) {
+        document.getElementById('m-accent').value     = raw.accent;
+        document.getElementById('m-accent-txt').value = raw.accent;
+      }
+      if (raw.accent2) {
+        document.getElementById('m-accent2').value     = raw.accent2;
+        document.getElementById('m-accent2-txt').value = raw.accent2;
+      }
+      if (raw.navyColor) {
+        const el = document.getElementById('m-navy'); if (el) el.value = raw.navyColor;
+        const el2 = document.getElementById('m-navy-txt'); if (el2) el2.value = raw.navyColor;
+        const cp = document.getElementById('cp-navy'); if (cp) cp.style.background = raw.navyColor;
+      }
+      if (raw.bgColor) {
+        const el = document.getElementById('m-bg'); if (el) el.value = raw.bgColor;
+        const el2 = document.getElementById('m-bg-txt'); if (el2) el2.value = raw.bgColor;
+        const cp = document.getElementById('cp-bg'); if (cp) cp.style.background = raw.bgColor;
+      }
+      if (raw.surfaceColor) {
+        const el = document.getElementById('m-surf'); if (el) el.value = raw.surfaceColor;
+        const el2 = document.getElementById('m-surf-txt'); if (el2) el2.value = raw.surfaceColor;
+        const cp = document.getElementById('cp-surf'); if (cp) cp.style.background = raw.surfaceColor;
+      }
+      if (raw.textColor) {
+        const el = document.getElementById('m-text-color'); if (el) el.value = raw.textColor;
+        const el2 = document.getElementById('m-text-txt'); if (el2) el2.value = raw.textColor;
+        const cp = document.getElementById('cp-txt'); if (cp) cp.style.background = raw.textColor;
+      }
+      if (raw.logoDataUrl) {
+        admLogoDataUrl = raw.logoDataUrl;
+        const preview = document.getElementById('adm-logo-preview');
+        if (preview) preview.innerHTML = `<img src="${raw.logoDataUrl}" style="max-height:64px;max-width:100%;object-fit:contain;border-radius:8px;" />`;
+      }
+      if (raw.assistantMessage && document.getElementById('m-assistant'))
+        document.getElementById('m-assistant').value = raw.assistantMessage;
+      if (raw.librasMessage && document.getElementById('m-libras'))
+        document.getElementById('m-libras').value = raw.librasMessage;
+      syncPreview();
+      syncColors(false);
+      toast('✅ Tema importado e sincronizado com o totem!');
+    } catch {
+      toast('Arquivo de tema inválido ou corrompido.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ─── PRESETS ─────────────────────────────────────────────
+const PRESETS = {
+  farmacia_azul:  { brand:'FarmaBlue', monogram:'FB', unit:'Farmácia Central', accent:'#1A4D8F', accent2:'#2C66B0', navyColor:'#0a1628', bgColor:'#f3f8fe', surfaceColor:'#ffffff', textColor:'#0a1628' },
+  clinica_verde:  { brand:'Clínica Verde', monogram:'CV', unit:'Unidade Saúde', accent:'#1B6B4E', accent2:'#28A06E', navyColor:'#0d2e20', bgColor:'#f0faf5', surfaceColor:'#ffffff', textColor:'#0d2e20' },
+  laboratorio:    { brand:'LabDiag', monogram:'LD', unit:'Laboratório Central', accent:'#5B21B6', accent2:'#7C3AED', navyColor:'#1e0a42', bgColor:'#f5f0ff', surfaceColor:'#ffffff', textColor:'#1e0a42' },
+  drogaria_gold:  { brand:'DrogaGold', monogram:'DG', unit:'Drogaria Premium', accent:'#855600', accent2:'#B45309', navyColor:'#1a0f00', bgColor:'#fdf8ef', surfaceColor:'#ffffff', textColor:'#1a0f00' }
+};
+
+function applyPreset(key) {
+  const p = PRESETS[key];
+  if (!p) return;
+  if (p.brand)    document.getElementById('m-brand').value = p.brand;
+  if (p.monogram) document.getElementById('m-mono').value  = p.monogram;
+  if (p.unit)     document.getElementById('m-unit').value  = p.unit;
+  if (p.accent) {
+    document.getElementById('m-accent').value     = p.accent;
+    document.getElementById('m-accent-txt').value = p.accent;
+    document.getElementById('cp1').style.background = p.accent;
+  }
+  if (p.accent2) {
+    document.getElementById('m-accent2').value     = p.accent2;
+    document.getElementById('m-accent2-txt').value = p.accent2;
+    document.getElementById('cp2').style.background = p.accent2;
+  }
+  const setExt = (pickId, txtId, cpId, val) => {
+    const pk = document.getElementById(pickId); if (pk) pk.value = val;
+    const tx = document.getElementById(txtId);  if (tx) tx.value = val;
+    const cp = document.getElementById(cpId);   if (cp) cp.style.background = val;
+  };
+  setExt('m-navy','m-navy-txt','cp-navy', p.navyColor);
+  setExt('m-bg','m-bg-txt','cp-bg', p.bgColor);
+  setExt('m-surf','m-surf-txt','cp-surf', p.surfaceColor);
+  setExt('m-text-color','m-text-txt','cp-txt', p.textColor);
+  syncPreview();
+  ['prev-line','prev-line2'].forEach(id => { const el = document.getElementById(id); if (el) el.style.background = `linear-gradient(90deg,${p.accent},${p.accent2})`; });
+  toast(`Preset "${p.brand}" aplicado. Clique em "Aplicar ao totem" para salvar.`);
+}
+
+function exportLayout() { admExportTheme(); }
+function importLayout(input) { admImportTheme(input); }
+
+function toggleMod(el) {
+  el.classList.toggle('active');
+  const cb = el.querySelector('input[type=checkbox]');
+  if (cb) cb.checked = el.classList.contains('active');
+}
+
+// ─── CHARTS ──────────────────────────────────────────────
+function renderHourChart() {
+  const data = [4,6,9,14,18,22,31,28,35,42,38,34,29,26,32,38,41,36,28,21,16,12,8,5];
+  const labels = ['00','02','04','06','08','10','12','14','16','18','20','22'];
+  const max = Math.max(...data);
+  const chart = document.getElementById('hour-chart');
+  const lbl = document.getElementById('hour-labels');
+  if (!chart) return;
+  chart.innerHTML = data.map((v, i) => `
+    <div class="chart-bar" style="height:${Math.max(6, Math.round(v/max*100))}%">
+      <div class="tip">${v} acessos</div>
+    </div>`).join('');
+  lbl.innerHTML = labels.map(l => `<span>${l}h</span>`).join('');
+}
+
+function renderWeekChart() {
+  const data = [180, 240, 195, 310, 280, 350, 247];
+  const days = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+  const max = Math.max(...data);
+  const chart = document.getElementById('week-chart');
+  const lbl = document.getElementById('week-labels');
+  if (!chart) return;
+  chart.innerHTML = data.map((v, i) => `
+    <div class="chart-bar" style="height:${Math.max(6, Math.round(v/max*100))}%;${i===6?'background:var(--blue)':''}">
+      <div class="tip">${v} visitas</div>
+    </div>`).join('');
+  lbl.innerHTML = days.map(d => `<span>${d}</span>`).join('');
+}
+
+function renderTopTable() {
+  const data = [
+    { name: 'Paracetamol', n: 89, up: true },
+    { name: 'Amoxicilina', n: 67, up: false },
+    { name: 'Vitamina C', n: 54, up: true },
+    { name: 'Loratadina', n: 43, up: true },
+    { name: 'Protetor Solar', n: 38, up: false }
+  ];
+  const tbody = document.getElementById('top-tbl');
+  if (!tbody) return;
+  tbody.innerHTML = data.map(d => `
+    <tr>
+      <td class="td-bold">${d.name}</td>
+      <td>${d.n}x</td>
+      <td class="${d.up ? 'stat-up' : 'stat-dn'}">${d.up ? '↑' : '↓'}</td>
+    </tr>`).join('');
+}
+
+// ─── CAMPANHAS ───────────────────────────────────────────
+
+let _campaigns = [];
+
+async function loadCampaigns() {
+  try {
+    _campaigns = await apiGetAllCampaigns() || [];
+  } catch(e) {
+    document.getElementById('camp-setup-notice').style.display = 'block';
+    _campaigns = [];
+  }
+  renderCampaignTable();
+  loadCampaignAnalytics();
+}
+
+const NOMES_FAIXAS = Object.fromEntries([18, 28, 38, 48, 58, 68, 78].map(a => [`${a}-${a + 10}`, `${a}–${a + 10}`]));
+
+function renderCampaignTable() {
+  const tbody = document.getElementById('camp-tbody');
+  const sub   = document.getElementById('camp-count-sub');
+  if (!tbody) return;
+  sub.textContent = `${_campaigns.length} campanha(s) cadastrada(s)`;
+  if (_campaigns.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:32px">
+      Nenhuma campanha cadastrada. Clique em "Nova Campanha" para começar.
+    </td></tr>`;
+    return;
+  }
+  const typeLabel = { image:'Imagem', video:'Vídeo', carousel:'Carrossel' };
+  const typeCls   = { image:'cp-type-image', video:'cp-type-video', carousel:'cp-type-carousel' };
+  tbody.innerHTML = _campaigns.map(c => {
+    const start = c.start_date ? new Date(c.start_date).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}) : '—';
+    const end   = c.end_date   ? new Date(c.end_date).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}) : '—';
+    const sched = (c.start_date || c.end_date) ? `${start} → ${end}` : 'Sempre ativa';
+    return `<tr>
+      <td class="td-bold">${esc(c.name)}</td>
+      <td><span class="cp-type-badge ${typeCls[c.type]||'badge-blue'}">${typeLabel[c.type]||c.type}</span></td>
+      <td>${(c.faixas || []).length ? c.faixas.map(f => `<span class="badge badge-blue" style="margin:1px">${esc(NOMES_FAIXAS[f] || f)}</span>`).join('') : '<span style="color:var(--text3);font-size:12px">Todos</span>'}</td>
+      <td>${c.priority ?? 0}</td>
+      <td>${c.duration_seconds ?? 10}s</td>
+      <td style="font-size:12px;color:var(--text3)">${sched}</td>
+      <td>
+        <span class="badge ${c.is_active ? 'badge-green' : 'badge-amber'}">
+          <span class="badge-dot"></span>${c.is_active ? 'Ativa' : 'Inativa'}
+        </span>
+      </td>
+      <td>
+        <div class="row-actions">
+          <button class="row-btn row-btn-edit" onclick="editCampaign('${c.id}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" width="12" height="12"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>
+            Editar
+          </button>
+          <button class="row-btn row-btn-del" onclick="deleteCampaign('${c.id}','${esc(c.name)}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" width="12" height="12"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+            Excluir
+          </button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function loadCampaignAnalytics() {
+  try {
+    const events = await apiGetCampaignAnalytics() || [];
+    const today  = new Date().toDateString();
+    const todayEvts = events.filter(e => new Date(e.created_at||Date.now()).toDateString() === today);
+    const impr   = todayEvts.filter(e => e.event_type === 'impression').length;
+    const clicks = todayEvts.filter(e => e.event_type === 'click').length;
+    const ctr    = impr > 0 ? ((clicks / impr) * 100).toFixed(1) + '%' : '—';
+    document.getElementById('camp-stat-impressions').textContent = impr.toLocaleString('pt-BR');
+    document.getElementById('camp-stat-clicks').textContent = clicks.toLocaleString('pt-BR');
+    document.getElementById('camp-stat-ctr').textContent = ctr;
+
+    // Performance table (visão page)
+    renderPerfTable(events);
+  } catch(_) {}
+}
+
+function renderPerfTable(events) {
+  const tbody = document.getElementById('perf-tbody');
+  if (!tbody || !_campaigns.length) return;
+  const stats = {};
+  events.forEach(e => {
+    if (!e.campaign_id) return;
+    if (!stats[e.campaign_id]) stats[e.campaign_id] = { impr:0, clicks:0, complete:0 };
+    if (e.event_type === 'impression')   stats[e.campaign_id].impr++;
+    if (e.event_type === 'click')        stats[e.campaign_id].clicks++;
+    if (e.event_type === 'view_complete') stats[e.campaign_id].complete++;
+  });
+  const ranked = _campaigns
+    .map(c => ({ ...c, s: stats[c.id] || { impr:0, clicks:0, complete:0 } }))
+    .sort((a,b) => b.s.impr - a.s.impr);
+  tbody.innerHTML = ranked.map((c, i) => {
+    const ctr = c.s.impr > 0 ? ((c.s.clicks / c.s.impr)*100).toFixed(1)+'%' : '—';
+    return `<tr>
+      <td style="font-weight:700;color:var(--text3)">${i+1}</td>
+      <td class="td-bold">${esc(c.name)}</td>
+      <td>${c.s.impr.toLocaleString('pt-BR')}</td>
+      <td>${c.s.clicks.toLocaleString('pt-BR')}</td>
+      <td style="font-weight:700;color:var(--blue)">${ctr}</td>
+      <td>${c.s.complete.toLocaleString('pt-BR')}</td>
+    </tr>`;
+  }).join('');
+}
+
+function openCampModal(c = null) {
+  document.getElementById('camp-modal-title').textContent = c ? 'Editar Campanha' : 'Nova Campanha';
+  document.getElementById('camp-id').value          = c?.id || '';
+  document.getElementById('camp-name').value        = c?.name || '';
+  document.getElementById('camp-type').value        = c?.type || 'image';
+  document.getElementById('camp-dur').value         = c?.duration_seconds ?? 10;
+  document.getElementById('camp-priority').value    = c?.priority ?? 0;
+  document.getElementById('camp-active').checked    = c?.is_active !== false;
+  document.getElementById('camp-start').value       = c?.start_date ? c.start_date.slice(0,16) : '';
+  document.getElementById('camp-end').value         = c?.end_date   ? c.end_date.slice(0,16)   : '';
+  const faixas = Array.isArray(c?.faixas) ? c.faixas : [];
+  document.querySelectorAll('#camp-faixas input').forEach(cb => { cb.checked = faixas.includes(cb.value); });
+  document.getElementById('camp-vitrine').checked = c ? c.na_vitrine !== false : true;
+  // Load existing URLs into upload state so they appear in preview
+  const urls = Array.isArray(c?.media_urls) ? c.media_urls : [];
+  _campUploadedUrls = [...urls];
+  document.getElementById('camp-media-urls').value = '';
+  document.getElementById('camp-upload-progress').style.display = 'none';
+  _renderMediaPreview();
+  onCampTypeChange();
+  document.getElementById('camp-modal').classList.add('on');
+}
+
+function editCampaign(id) {
+  const c = _campaigns.find(x => x.id === id);
+  if (c) openCampModal(c);
+}
+
+function closeCampModal() {
+  document.getElementById('camp-modal').classList.remove('on');
+  _campUploadedUrls = [];
+  _renderMediaPreview();
+  document.getElementById('camp-upload-progress').style.display = 'none';
+  document.getElementById('camp-media-urls').value = '';
+}
+
+function onCampTypeChange() {
+  const type = document.getElementById('camp-type').value;
+  const lbl  = document.getElementById('camp-media-lbl');
+  const hint = document.getElementById('camp-media-hint');
+  if (type === 'video') {
+    lbl.textContent  = 'URL do vídeo';
+    hint.textContent = 'URL direta para .mp4, .webm ou stream HLS';
+  } else if (type === 'carousel') {
+    lbl.textContent  = 'URLs das imagens do carrossel (uma por linha)';
+    hint.textContent = 'Mínimo 2 imagens para ativar o carrossel';
+  } else {
+    lbl.textContent  = 'URL da imagem';
+    hint.textContent = 'URL direta para .jpg, .png, .webp ou .gif';
+  }
+}
+
+async function saveCampaign() {
+  const name  = document.getElementById('camp-name').value.trim();
+  if (!name) { toast('Informe o nome da campanha.'); return; }
+
+  // Merge uploaded URLs with any manually typed ones, deduplicated
+  const manualUrls = document.getElementById('camp-media-urls').value
+    .split('\n').map(u => u.trim()).filter(Boolean);
+  const allUrls = [...new Set([..._campUploadedUrls, ...manualUrls])];
+
+  const payload = {
+    name,
+    type:             document.getElementById('camp-type').value,
+    duration_seconds: parseInt(document.getElementById('camp-dur').value) || 10,
+    priority:         parseInt(document.getElementById('camp-priority').value) || 0,
+    is_active:        document.getElementById('camp-active').checked,
+    start_date:       document.getElementById('camp-start').value || null,
+    end_date:         document.getElementById('camp-end').value   || null,
+    media_urls:       allUrls,
+    faixas:           [...document.querySelectorAll('#camp-faixas input:checked')].map(cb => cb.value),
+    na_vitrine:       document.getElementById('camp-vitrine').checked
+  };
+
+  const id = document.getElementById('camp-id').value;
+  try {
+    if (id) {
+      await apiUpdateCampaign(id, payload);
+      toast('Campanha atualizada!');
+    } else {
+      await apiCreateCampaign(payload);
+      toast('Campanha criada!');
+    }
+    closeCampModal();
+    await loadCampaigns();
+  } catch(e) {
+    toast('Erro ao salvar. Verifique as tabelas no Supabase.');
+    document.getElementById('camp-setup-notice').style.display = 'block';
+  }
+}
+
+async function deleteCampaign(id, name) {
+  if (!confirm(`Excluir a campanha "${name}"? Esta ação não pode ser desfeita.`)) return;
+  try {
+    await apiDeleteCampaign(id);
+    toast('Campanha excluída.');
+    await loadCampaigns();
+  } catch(e) { toast('Erro ao excluir campanha.'); }
+}
+
+async function saveStandbyConfig() {
+  const v = parseInt(document.getElementById('standby-timeout').value) || 60;
+  if (v < 10 || v > 3600) { toast('Valor deve ser entre 10 e 3600 segundos.'); return; }
+  try {
+    await apiSaveConfig({ standby_timeout_seconds: v });
+    const wl = JSON.parse(localStorage.getItem('flexmed_whitelabel_config') || '{}');
+    wl.standby_timeout_seconds = v;
+    localStorage.setItem('flexmed_whitelabel_config', JSON.stringify(wl));
+    toast('Configuração de standby salva!');
+  } catch(e) { toast('Erro ao salvar configuração.'); }
+}
+
+// ─── VISÃO COMPUTACIONAL ──────────────────────────────────
+
+const VISION_API = FLEXMED_SERVER;
+let _visionPollInterval = null;
+
+async function refreshVisionStatus() {
+  try {
+    const res = await fetch(`${VISION_API}/vision_status`);
+    if (!res.ok) throw new Error();
+    const s = await res.json();
+    const dot = document.getElementById('vision-live-dot');
+    const sub = document.getElementById('vision-status-sub');
+    if (dot) dot.style.background = s.active ? 'var(--green)' : 'var(--amber)';
+    if (sub) sub.textContent = s.active
+      ? `Câmera ativa — ${s.face_count} pessoa(s) detectada(s)`
+      : 'Câmera em standby (ativa somente durante o modo standby do totem)';
+    document.getElementById('v-faces').textContent       = s.face_count ?? '—';
+    document.getElementById('v-looking').textContent     = s.looking ? 'Sim' : 'Não';
+    document.getElementById('v-impressions').textContent = s.total_impressions ?? '—';
+    const ageMap = { child:'< 18 anos', young:'18–34', middle:'35–54', senior:'55+' };
+    document.getElementById('v-age').textContent = ageMap[s.age_group] || '—';
+  } catch(_) {
+    const dot = document.getElementById('vision-live-dot');
+    const sub = document.getElementById('vision-status-sub');
+    if (dot) dot.style.background = 'var(--border2)';
+    if (sub) sub.textContent = 'Servidor Python não conectado — inicie o server.py para ativar';
+  }
+}
+
+async function loadVisionAnalytics() {
+  try {
+    const metrics = await apiGetVisionMetrics('default', 1) || [];
+    const presence = metrics.filter(m => m.metric_type === 'presence');
+    const total    = presence.length;
+    const looking  = presence.filter(m => m.value?.looking).length;
+
+    const campEvents = await apiGetCampaignAnalytics() || [];
+    const today = new Date().toDateString();
+    const clicks = campEvents.filter(e =>
+      e.event_type === 'click' && new Date(e.created_at||Date.now()).toDateString() === today
+    ).length;
+
+    document.getElementById('vf-passaram').textContent = total;
+    document.getElementById('vf-olharam').textContent  = looking;
+    document.getElementById('vf-clicaram').textContent = clicks;
+
+    const maxH = 100;
+    if (total > 0) {
+      document.getElementById('vff-passaram').style.height = maxH + 'px';
+      document.getElementById('vff-olharam').style.height  = Math.round((looking/total)*maxH) + 'px';
+      document.getElementById('vff-clicaram').style.height = Math.max(4, Math.round((clicks/total)*maxH)) + 'px';
+    }
+
+    // Perfil de público
+    const ages   = presence.map(m => m.value?.age_group).filter(Boolean);
+    const genders = presence.map(m => m.value?.gender).filter(Boolean);
+    renderVisionProfile(ages, genders);
+
+    // Gráfico por horário
+    renderHourlyChart(presence);
+
+    // Heatmap de toque
+    renderTouchHeatmap();
+  } catch(_) {}
+}
+
+function renderVisionProfile(ages, genders) {
+  const el = document.getElementById('vision-profile');
+  if (!el) return;
+  if (!ages.length && !genders.length) return;
+
+  const ageCounts = {};
+  ages.forEach(a => { ageCounts[a] = (ageCounts[a] || 0) + 1; });
+  const ageLabels = { child:'< 18', young:'18–34', middle:'35–54', senior:'55+' };
+
+  const gCounts = {};
+  genders.forEach(g => { gCounts[g] = (gCounts[g] || 0) + 1; });
+
+  const total = ages.length || 1;
+  const rows = Object.entries(ageCounts).sort((a,b) => b[1]-a[1]).map(([k,v]) => {
+    const pct = Math.round((v/total)*100);
+    return `<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+        <span style="font-weight:600">${ageLabels[k]||k}</span>
+        <span style="color:var(--text3)">${pct}%</span>
+      </div>
+      <div style="height:6px;border-radius:99px;background:var(--border);overflow:hidden">
+        <div style="width:${pct}%;height:100%;background:var(--blue);border-radius:99px;transition:width .5s"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const gTotal = Object.values(gCounts).reduce((a,b) => a+b, 0) || 1;
+  const gRows = Object.entries(gCounts).map(([k,v]) => {
+    const pct = Math.round((v/gTotal)*100);
+    const color = k === 'woman' ? '#EC4899' : k === 'man' ? '#3B82F6' : 'var(--text3)';
+    const label = k === 'woman' ? 'Feminino' : k === 'man' ? 'Masculino' : k;
+    return `<div style="display:flex;align-items:center;gap:8px;font-size:12px">
+      <div style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0"></div>
+      <span style="font-weight:600">${label}</span>
+      <span style="color:var(--text3);margin-left:auto">${pct}%</span>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div style="margin-bottom:14px">
+      <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Faixa etária</div>
+      ${rows || '<p style="font-size:12px;color:var(--text3)">Sem dados suficientes</p>'}
+    </div>
+    <div>
+      <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Gênero</div>
+      <div style="display:flex;flex-direction:column;gap:8px">${gRows || '<p style="font-size:12px;color:var(--text3)">Sem dados suficientes</p>'}</div>
+    </div>`;
+}
+
+// ─── UPLOAD DE MÍDIA ─────────────────────────────────────
+
+let _campUploadedUrls = [];
+
+function handleCampDrop(e) {
+  e.preventDefault();
+  document.getElementById('camp-drop-area').style.borderColor = '';
+  if (e.dataTransfer?.files?.length) handleCampFiles(e.dataTransfer.files);
+}
+
+async function handleCampFiles(files) {
+  const prog  = document.getElementById('camp-upload-progress');
+  const bar   = document.getElementById('camp-upload-bar');
+  const label = document.getElementById('camp-upload-label');
+  const arr   = Array.from(files);
+  if (!arr.length) return;
+  prog.style.display = 'block';
+  for (let i = 0; i < arr.length; i++) {
+    const f = arr[i];
+    label.textContent = `Enviando ${i + 1} de ${arr.length}: ${f.name}`;
+    bar.style.width = Math.round((i / arr.length) * 100) + '%';
+    try {
+      const url = await apiUploadMedia(f);
+      _campUploadedUrls.push(url);
+      _renderMediaPreview();
+    } catch(err) {
+      toast(`Erro ao enviar ${f.name}`);
+    }
+  }
+  bar.style.width = '100%';
+  label.textContent = `${arr.length} arquivo(s) enviado(s) com sucesso`;
+  setTimeout(() => { prog.style.display = 'none'; }, 2500);
+  document.getElementById('camp-file-input').value = '';
+}
+
+function _renderMediaPreview() {
+  const el = document.getElementById('camp-media-preview');
+  if (!el) return;
+  if (!_campUploadedUrls.length) { el.innerHTML = ''; return; }
+  el.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px">' +
+    _campUploadedUrls.map((url, i) => {
+      const isVideo = /\.(mp4|webm)(\?|$)/i.test(url);
+      const thumb = isVideo
+        ? `<video src="${url}" style="width:64px;height:64px;object-fit:cover;border-radius:8px" muted></video>`
+        : `<img src="${url}" style="width:64px;height:64px;object-fit:cover;border-radius:8px" loading="lazy" />`;
+      return `<div style="position:relative">
+        ${thumb}
+        <button type="button" onclick="_removeCampMedia(${i})"
+          style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--red);color:#fff;font-size:11px;line-height:18px;text-align:center;border:none;cursor:pointer;font-weight:700">×</button>
+      </div>`;
+    }).join('') + '</div>';
+}
+
+function _removeCampMedia(i) {
+  _campUploadedUrls.splice(i, 1);
+  _renderMediaPreview();
+}
+
+// ─── GRÁFICO HORÁRIO ─────────────────────────────────────
+
+function renderHourlyChart(presence) {
+  const el = document.getElementById('hourly-chart');
+  if (!el) return;
+  const counts = Array(24).fill(0);
+  presence.forEach(m => {
+    const h = m.value?.hour;
+    if (h != null && h >= 0 && h < 24) counts[h]++;
+  });
+  const max = Math.max(...counts, 1);
+  const curH = new Date().getHours();
+  el.innerHTML = counts.map((v, h) => {
+    const pct = Math.max(2, Math.round((v / max) * 100));
+    const color = h === curH ? 'var(--blue)' : (v > 0 ? 'var(--blue2)' : 'var(--border)');
+    return `<div title="${h}h: ${v} leitura(s)" style="flex:1;height:100%;display:flex;align-items:flex-end">
+      <div style="width:100%;background:${color};border-radius:3px 3px 0 0;height:${pct}%;transition:height .5s"></div>
+    </div>`;
+  }).join('');
+}
+
+// ─── HEATMAP DE TOQUE ────────────────────────────────────
+
+async function renderTouchHeatmap() {
+  const wrap  = document.getElementById('touch-heatmap-dots');
+  const empty = document.getElementById('touch-heatmap-empty');
+  if (!wrap) return;
+  try {
+    const pts = await apiGetTouchHeatmap('default', 7);
+    if (!pts.length) { if (empty) empty.style.display = 'flex'; return; }
+    if (empty) empty.style.display = 'none';
+    // Aggregate nearby points to create heat intensity
+    wrap.innerHTML = pts.map(p =>
+      `<div style="position:absolute;left:${p.x_pct}%;top:${p.y_pct}%;
+        width:24px;height:24px;border-radius:50%;
+        background:radial-gradient(circle,rgba(255,120,0,.5) 0%,rgba(255,60,0,0) 100%);
+        transform:translate(-50%,-50%);pointer-events:none"></div>`
+    ).join('');
+  } catch(_) {}
+}
+
+// ─── UTILS ───────────────────────────────────────────────
+function esc(s) {
+  return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'})[m]);
+}
+
+// ─── INIT ────────────────────────────────────────────────
+function initApp() {
+  // Pre-fill brand form from saved white-label config (if any)
+  try {
+    const saved = localStorage.getItem('flexmed_whitelabel_config');
+    if (saved) {
+      const wl = JSON.parse(saved);
+      if (wl.brand)    document.getElementById('m-brand').value = wl.brand;
+      if (wl.monogram) document.getElementById('m-mono').value  = wl.monogram;
+      if (wl.unit)     document.getElementById('m-unit').value  = wl.unit;
+      if (wl.accent) {
+        document.getElementById('m-accent').value     = wl.accent;
+        document.getElementById('m-accent-txt').value = wl.accent;
+      }
+      if (wl.accent2) {
+        document.getElementById('m-accent2').value     = wl.accent2;
+        document.getElementById('m-accent2-txt').value = wl.accent2;
+      }
+      // Extended colors
+      const setExt = (pickId, txtId, cpId, val) => {
+        if (!val) return;
+        const pk = document.getElementById(pickId); if (pk) pk.value = val;
+        const tx = document.getElementById(txtId);  if (tx) tx.value = val;
+        const cp = document.getElementById(cpId);   if (cp) cp.style.background = val;
+      };
+      setExt('m-navy','m-navy-txt','cp-navy', wl.navyColor);
+      setExt('m-bg','m-bg-txt','cp-bg', wl.bgColor);
+      setExt('m-surf','m-surf-txt','cp-surf', wl.surfaceColor);
+      setExt('m-text-color','m-text-txt','cp-txt', wl.textColor);
+      // Logo
+      if (wl.logoDataUrl && wl.logoDataUrl.startsWith('data:image/')) {
+        admLogoDataUrl = wl.logoDataUrl;
+        const preview = document.getElementById('adm-logo-preview');
+        if (preview) preview.innerHTML = `<img src="${wl.logoDataUrl}" style="max-height:64px;max-width:100%;object-fit:contain;border-radius:8px;" />`;
+      }
+      if (wl.assistantMessage && document.getElementById('m-assistant'))
+        document.getElementById('m-assistant').value = wl.assistantMessage;
+      if (wl.librasMessage && document.getElementById('m-libras'))
+        document.getElementById('m-libras').value = wl.librasMessage;
+    }
+  } catch(e) { /* ignore */ }
+
+  iniciarAvisosLoja();   // badges de pedidos novos e alertas de estoque (admin_pedidos.js)
+  renderSwatchesAdm();
+  renderHourChart();
+  renderWeekChart();
+  renderTopTable();
+  syncPreview();
+  syncColors(false);
+  document.getElementById('cp1').style.background = '#1A4D8F';
+  document.getElementById('cp2').style.background = '#2C66B0';
+
+  // Dashboard com dados reais do totem (admin_metricas.js)
+  carregarDashboard();
+  setInterval(() => { if (document.getElementById("p-dashboard").classList.contains("on")) carregarDashboard(); }, 30000);
+}
+</script>
+</body>
+</html>
+
+
+
+

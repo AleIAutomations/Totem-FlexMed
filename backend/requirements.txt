@@ -1,0 +1,28 @@
+# FlexMed v5 — backend + LibrasFlow
+# Python recomendado: 3.9, 3.10 ou 3.11
+
+flask>=3.0,<4
+flask-cors>=4.0,<5
+python-dotenv>=1.0,<2
+werkzeug>=3.0,<4
+
+# Visão computacional / Libras
+opencv-python>=4.8,<5
+mediapipe>=0.10,<0.11
+numpy>=1.24,<2.1
+scikit-learn>=1.3,<1.6
+pandas>=2.0,<2.3
+
+# Treinamento LibrasFlow v2
+tensorflow>=2.13,<2.17
+matplotlib>=3.7,<3.10
+pymupdf>=1.23,<1.26
+Pillow>=10,<12
+tqdm>=4.65,<5
+
+# Assistente por voz (transcrição local em português; baixa o modelo "small" ~460 MB na 1ª vez)
+faster-whisper>=1.0,<2
+
+# Scraping e imagens de produto
+requests>=2.31,<3
+beautifulsoup4>=4.12,<5

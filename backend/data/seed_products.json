@@ -1,0 +1,170 @@
+[
+  {
+    "nome": "Paracetamol 750mg",
+    "tipo": "Analgésico / Antitérmico",
+    "categoria": "analgesico",
+    "uso": "Alivia dores leves a moderadas e reduz febre.",
+    "indicacoes": [
+      "Dor de cabeça",
+      "Febre",
+      "Dor muscular",
+      "Dor de dente"
+    ],
+    "receita": false,
+    "estoque": 47,
+    "estoqueMax": 60,
+    "local": "Corredor A – Prateleira 2",
+    "locaisDisponiveis": [
+      "Corredor A – Prateleira 2",
+      "Balcão Principal"
+    ],
+    "info": "Evite uso com álcool. Respeite intervalo entre doses.",
+    "dicaIA": "Para febre persistente ou dor intensa recorrente, direcione o usuário ao atendimento profissional.",
+    "preco": "R$ 8,90",
+    "imgUrl": "",
+    "imgIndex": 1,
+    "active": true
+  },
+  {
+    "nome": "Amoxicilina 500mg",
+    "tipo": "Antibiótico",
+    "categoria": "antibiotico",
+    "uso": "Tratamento de infecções bacterianas mediante prescrição.",
+    "indicacoes": [
+      "Infecção bacteriana",
+      "Sinusite",
+      "Amigdalite"
+    ],
+    "receita": true,
+    "estoque": 12,
+    "estoqueMax": 40,
+    "local": "Corredor B – Prateleira 1",
+    "locaisDisponiveis": [
+      "Corredor B – Prateleira 1"
+    ],
+    "info": "Uso restrito sob orientação médica. Não interrompa tratamento sem avaliação.",
+    "dicaIA": "Antibióticos não tratam gripe ou resfriado.",
+    "preco": "Sob receita",
+    "imgUrl": "",
+    "imgIndex": 2,
+    "active": true
+  },
+  {
+    "nome": "Vitamina C 1g",
+    "tipo": "Suplemento vitamínico",
+    "categoria": "vitaminas",
+    "uso": "Auxilia na rotina de suplementação e suporte imunológico.",
+    "indicacoes": [
+      "Suplementação",
+      "Imunidade",
+      "Rotina diária"
+    ],
+    "receita": false,
+    "estoque": 32,
+    "estoqueMax": 50,
+    "local": "Corredor C – Prateleira 3",
+    "locaisDisponiveis": [
+      "Corredor C – Prateleira 3"
+    ],
+    "info": "Preferencialmente após as refeições.",
+    "dicaIA": "A apresentação efervescente e a comprimida têm o mesmo objetivo funcional.",
+    "preco": "R$ 18,90",
+    "imgUrl": "",
+    "imgIndex": 3,
+    "active": true
+  },
+  {
+    "nome": "Insulina NPH 100UI",
+    "tipo": "Controle glicêmico",
+    "categoria": "diabetes",
+    "uso": "Produto de uso controlado para manejo glicêmico.",
+    "indicacoes": [
+      "Diabetes tipo 1",
+      "Diabetes tipo 2"
+    ],
+    "receita": true,
+    "estoque": 8,
+    "estoqueMax": 30,
+    "local": "Balcão frio – Refrigerado",
+    "locaisDisponiveis": [
+      "Balcão frio – Refrigerado"
+    ],
+    "info": "Manter refrigerado entre 2°C e 8°C.",
+    "dicaIA": "É essencial manter cadeia de conservação e orientação adequada de retirada.",
+    "preco": "Sob receita",
+    "imgUrl": "",
+    "imgIndex": 4,
+    "active": true
+  },
+  {
+    "nome": "Protetor Solar FPS 60",
+    "tipo": "Dermatológico",
+    "categoria": "dermato",
+    "uso": "Proteção UVA/UVB para rotina diária.",
+    "indicacoes": [
+      "Fotoproteção",
+      "Rotina facial",
+      "Uso diário"
+    ],
+    "receita": false,
+    "estoque": 25,
+    "estoqueMax": 40,
+    "local": "Corredor D – Prateleira 1",
+    "locaisDisponiveis": [
+      "Corredor D – Prateleira 1"
+    ],
+    "info": "Reaplicar conforme tempo de exposição e transpiração.",
+    "dicaIA": "O uso diário melhora a consistência da proteção, inclusive em dias nublados.",
+    "preco": "R$ 35,90",
+    "imgUrl": "",
+    "imgIndex": 5,
+    "active": true
+  },
+  {
+    "nome": "Xarope Infantil",
+    "tipo": "Linha infantil",
+    "categoria": "infantil",
+    "uso": "Suporte para sintomas leves mediante orientação adequada.",
+    "indicacoes": [
+      "Pediatria",
+      "Uso infantil"
+    ],
+    "receita": false,
+    "estoque": 14,
+    "estoqueMax": 25,
+    "local": "Corredor F – Infantil",
+    "locaisDisponiveis": [
+      "Corredor F – Infantil"
+    ],
+    "info": "Posologia depende de idade e peso.",
+    "dicaIA": "Em bebês muito pequenos, sempre priorize avaliação profissional.",
+    "preco": "R$ 16,50",
+    "imgUrl": "",
+    "imgIndex": 6,
+    "active": true
+  },
+  {
+    "nome": "Loratadina 10mg",
+    "tipo": "Antialérgico",
+    "categoria": "cuidados",
+    "uso": "Auxilia em sintomas de rinite e alergias leves.",
+    "indicacoes": [
+      "Rinite",
+      "Alergia",
+      "Coceira"
+    ],
+    "receita": false,
+    "estoque": 28,
+    "estoqueMax": 40,
+    "local": "Corredor C – Prateleira 2",
+    "locaisDisponiveis": [
+      "Corredor C – Prateleira 2"
+    ],
+    "info": "Pode causar sonolência em alguns casos.",
+    "dicaIA": "Para casos recorrentes, vale orientar avaliação de rotina.",
+    "preco": "R$ 12,90",
+    "imgUrl": "",
+    "imgIndex": 7,
+    "active": true
+  }
+]

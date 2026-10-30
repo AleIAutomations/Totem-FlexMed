@@ -1,0 +1,19 @@
+{
+  "name": "flexmed-motion",
+  "private": true,
+  "type": "module",
+  "description": "Vídeo de motion vertical do FlexMed (renderFrame(n) → Playwright → ffmpeg)",
+  "scripts": {
+    "render": "node render.mjs",
+    "render:4k": "node render.mjs --4k",
+    "preview": "node serve.mjs --abrir",
+    "verificar": "node verificar.mjs"
+  },
+  "dependencies": {
+    "@fontsource/atkinson-hyperlegible-next": "5.3.0",
+    "ffmpeg-static": "5.3.0",
+    "ffprobe-static": "3.1.0",
+    "playwright-core": "1.64.1",
+    "qrcode": "1.5.4"
+  }
+}

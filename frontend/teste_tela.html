@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="color-scheme" content="only light" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Teste de tela</title>
+  <style>
+    /* Moldura vermelha colada nas bordas da área da página: se aparecer faixa
+       preta além dela, a faixa está fora do navegador (configuração do Android). */
+    html, body { margin: 0; height: 100%; background: #fff; font-family: sans-serif; }
+    body { box-sizing: border-box; border: 12px solid #e00; display: flex;
+           align-items: center; justify-content: center; text-align: center; }
+    p { font-size: 28px; margin: 8px; }
+  </style>
+</head>
+<body>
+  <div>
+    <p><b>Teste de tela</b></p>
+    <p id="info"></p>
+    <p>A moldura vermelha deve encostar nas 4 bordas da tela.</p>
+  </div>
+  <script>
+    document.getElementById("info").textContent =
+      `${innerWidth} x ${innerHeight} (escala ${devicePixelRatio}) — tela ${screen.width} x ${screen.height}`;
+  </script>
+</body>
+</html>

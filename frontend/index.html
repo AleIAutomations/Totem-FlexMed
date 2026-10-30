@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="color-scheme" content="only light" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob: https: http://*:5050 https://*:5050; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; connect-src 'self' http://*:5050 https://*:5050 https://*.supabase.co https://*.supabase.in; media-src 'self' blob: http://*:5050 https://*:5050 https://*.supabase.co https://*.supabase.in; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'" />
+  <meta http-equiv="Referrer-Policy" content="no-referrer" />
+  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+  <title>FlexMed — Totem Inteligente</title>
+  <!-- Atkinson Hyperlegible Next: desenhada para leitura por pessoas com baixa visão (público de farmácia, de pé, a ~1 m) -->
+  <!-- sem bloquear a tela: se o Google demorar (hotspot), o totem aparece com a fonte do sistema e troca depois -->
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+    <link rel="stylesheet" href="styles.css?v=21" />
+    <link rel="stylesheet" href="totem.css?v=11" />
+    <script>
+      // Telas grandes (totem 32"): o layout ocupa a tela toda e é ampliado com zoom.
+      //  - horizontal: desenhado para 1280x720 lógicos (1920x1080 -> 1,5x)
+      //  - vertical:   o layout de celular (480px) ampliado até a largura da tela
+      // Celulares continuam com o layout original.
+      // Simulação do totem em pé (9:16, como o 1080x1920 do totem) no navegador do
+      // notebook: ativa em localhost ou com ?totem=vertical; ?totem=off desativa.
+      const paramTotem = new URLSearchParams(location.search).get("totem");
+      const simularTotem = paramTotem === "vertical" ||
+        (paramTotem !== "off" && ["localhost", "127.0.0.1"].includes(location.hostname));
+
+      function ajustarEscalaTotem() {
+        let w = innerWidth, h = innerHeight;
+        const raiz = document.documentElement;
+        if (simularTotem) w = Math.min(w, Math.round(h * 9 / 16));  // moldura 9:16 centralizada
+        const horizontal = !simularTotem && w >= 1000 && w > h;
+        const vertical = simularTotem || (!horizontal && h >= w && w > 520);
+        const k = horizontal ? Math.max(1, Math.min(w / 1280, h / 720))
+                : vertical ? w / 480
+                : 1;
+        raiz.classList.toggle("totem-h", horizontal);
+        raiz.classList.toggle("totem-v", vertical);
+        raiz.classList.toggle("totem-sim", simularTotem);
+        raiz.style.setProperty("--k", k.toFixed(4));
+        raiz.style.setProperty("--tela-w", `${w}px`);
+        raiz.style.setProperty("--tela-h", `${h}px`);
+      }
+      ajustarEscalaTotem();
+      addEventListener("resize", ajustarEscalaTotem);
+    </script>
+
+</head>
+<body>
+  <div id="totem">
+    <header id="hdr">
+      <div class="hdr-brand">
+        <div class="hdr-mark"><div class="brand-logo-wrap" data-size="sm"><span class="brand-monogram brand-monogram-sm">FM</span></div></div>
+        <div class="hdr-meta">
+          <div class="hdr-title" id="h-brand">FlexMed</div>
+          <div class="hdr-sub" id="h-pharm">Farmácia Central</div>
+        </div>
+      </div>
+      <div class="hdr-right">
+        <button type="button" class="hdr-libras" onclick="openOv('o-lb')" aria-label="Atendimento em Libras">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8a6 6 0 0 0 6 6h0a6 6 0 0 0 6-6v-3a2 2 0 0 0-4 0z"/></svg>
+          <span id="t-lb">Libras</span>
+        </button>
+        <div class="lang-group">
+          <button class="lng on" onclick="setLang('pt', this)">PT</button>
+          <button class="lng" onclick="setLang('en', this)">EN</button>
+          <button class="lng" onclick="setLang('es', this)">ES</button>
+        </div>
+        <div class="hdr-clock" id="clock">--:--</div>
+        <!-- acesso discreto ao painel administrativo (demonstração). O painel abre por cima do totem
+             (painel_admin.js); o link nunca navega sozinho: sair do totem desligava a câmera e,
+             pela rede lenta, um toque antes do script carregar trocava a página pelo admin -->
+        <a class="hdr-admin" href="admin.html" onclick="event.preventDefault()" aria-label="Painel administrativo" title="Painel administrativo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+        </a>
+      </div>
+    </header>
+
+    <div id="s-area">
+      <h1 class="s-saudacao" id="s-saudacao">O que você procura hoje?</h1>
+      <div class="s-wrap">
+        <div class="s-ico-l">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+        </div>
+        <input
+          class="s-input"
+          id="s-in"
+          type="text"
+          placeholder="Buscar medicamento ou produto..."
+          oninput="onSrch(this.value)"
+          onfocus="showDrop()"
+          onblur="setTimeout(hideDrop,180)"
+          autocomplete="off"
+        />
+        <button class="s-mic" type="button" onclick="falarNaBusca()" aria-label="Buscar falando">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8"/></svg>
+        </button>
+        <button class="s-clr" id="s-clr" onclick="clrSrch()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M18 6 6 18M6 6l12 12"></path>
+          </svg>
+        </button>
+        <div class="s-drop" id="s-drop"></div>
+      </div>
+    </div>
+
+    <div id="cats-bar">
+      <div class="cats-scroll" id="cats-row"></div>
+    </div>
+
+    <div id="scroll">
+      <!-- Coluna de destaques (no totem horizontal fica fixa à esquerda) -->
+      <aside class="side-col">
+      <section class="banner-sec fu d2" aria-label="Destaques">
+        <div class="banner-shell">
+          <div class="banner-track" id="banner-track"></div>
+          <div class="banner-dots" id="banner-dots"></div>
+        </div>
+      </section>
+
+      <!-- Subcategorias do nicho escolhido no topo (ex.: Medicamentos -> Analgésicos, Antibióticos...) -->
+      <div class="subcats" id="subcats-row"></div>
+
+      </aside>
+
+      <!-- Catálogo por último: a rolagem infinita cresce para baixo -->
+      <section class="prod-col">
+      <div class="sec-head" style="margin-top:18px">
+        <h2 class="sec-title" id="t-dest">Produtos em Destaque</h2>
+        <span class="sec-conta" id="t-conta"></span>
+      </div>
+
+      <div class="p-grid" id="p-grid"></div>
+      <div class="p-sentinel" id="p-sentinel" aria-live="polite"></div>
+      </section>
+    </div>
+
+    <!-- Página do produto (autoatendimento): conteúdo montado por openDetail() -->
+    <div id="detail">
+      <div class="dp-topo">
+        <button class="dp-voltar" type="button" onclick="closeDetail()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7"></path>
+          </svg>
+          <span id="dp-voltar-txt">Voltar aos produtos</span>
+        </button>
+        <button class="dp-qr" type="button" onclick="openQR()" aria-label="QR code do produto">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+            <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+            <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+            <path d="M14 14h3v3h-3zM17 17h3v3h-3z" fill="currentColor" stroke="none" opacity=".65"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="dp-scroll" id="dp-conteudo"></div>
+      <div class="dp-rodape" id="dp-rodape"></div>
+    </div>
+
+    <div id="agent">
+      <div class="ag-bubble" id="ag-bub">
+        <div class="ag-head">
+          <div class="ag-head-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="3"></rect>
+              <path d="M8 21h8M12 17v4"></path>
+              <circle cx="8.5" cy="10" r="1.2" fill="currentColor" stroke="none"></circle>
+              <circle cx="15.5" cy="10" r="1.2" fill="currentColor" stroke="none"></circle>
+              <path d="M9 13a3 3 0 0 0 6 0"></path>
+            </svg>
+          </div>
+          <div>
+            <div class="ag-head-title" id="ag-title">Assistente FlexMed</div>
+            <div class="ag-head-sub" id="ag-sub">Pergunte sobre remédios e sintomas</div>
+          </div>
+          <button class="ag-close" onclick="closeChatbot()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M18 6 6 18M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="ag-msgs" id="ag-msgs"></div>
+        <!-- Assistente por voz: toque no microfone e fale o produto ou o sintoma -->
+        <div class="ag-voz">
+          <button class="ag-mic" id="ag-mic" type="button" onclick="agMic()" aria-label="Falar com o assistente">
+            <span class="ag-mic-onda"></span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="2" width="6" height="12" rx="3"></rect>
+              <path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8"></path>
+            </svg>
+          </button>
+          <div class="ag-voz-status" id="ag-voz-status">Toque no microfone e diga o produto ou o que está sentindo</div>
+        </div>
+      </div>
+
+    </div>
+
+    <nav id="nav" aria-label="Navegação e carrinho"></nav>
+
+    <div class="overlay" id="o-lb" onclick="ovClick(event,'o-lb')">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <button class="sheet-x" onclick="closeOv('o-lb')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M18 6 6 18M6 6l12 12"></path>
+          </svg>
+        </button>
+        <div class="sheet-head">
+          <div class="sheet-title" id="t-lb-title">Atendimento em Libras</div>
+          <div class="sheet-sub">Selecione um sinal ou use a área de reconhecimento</div>
+        </div>
+
+        <!-- ── Painel de câmera real (LibrasFlow) ── -->
+        <div class="lb-cam-wrap">
+
+          <!-- Stream de vídeo do servidor Python -->
+          <div class="lb-video-container" id="lb-video-container">
+            <!-- Estado: desconectado (padrão) -->
+            <div class="lb-offline" id="lb-offline">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" width="40" height="40" opacity=".4">
+                <path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8a6 6 0 0 0 6 6h0a6 6 0 0 0 6-6v-3a2 2 0 0 0-4 0z"></path>
+              </svg>
+              <p class="lb-offline-txt" id="lb-offline-txt">Câmera desligada</p>
+              <p class="lb-offline-hint" id="lb-offline-hint">Toque em Conectar para ativar o reconhecimento</p>
+              <button class="lb-connect-btn" onclick="lbConnect()">Conectar</button>
+            </div>
+
+            <!-- Stream de vídeo -->
+            <img id="lb-stream" class="lb-stream" src="" alt="Stream Libras" style="display:none" />
+
+            <!-- Overlay de letra reconhecida (exibido sobre o vídeo) -->
+            <div class="lb-letter-badge" id="lb-letter-badge" style="display:none">
+              <span id="lb-letter-char">A</span>
+            </div>
+
+            <!-- Indicador de conexão ativa -->
+            <div class="lb-conn-badge" id="lb-conn-badge" style="display:none">
+              <span class="lb-conn-dot"></span>
+              <span>AO VIVO</span>
+            </div>
+          </div>
+
+          <!-- Status / frase sendo formada -->
+          <div class="lb-frase-row">
+            <div class="lb-frase-label">Frase reconhecida:</div>
+            <div class="lb-frase-txt" id="lb-frase-txt">---</div>
+            <div class="lb-frase-actions">
+              <button class="lb-frase-btn" onclick="lbBackspace()" title="Apagar último caractere">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                  <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
+                  <line x1="18" y1="9" x2="15" y2="12"></line>
+                  <line x1="15" y1="9" x2="18" y2="12"></line>
+                </svg>
+              </button>
+              <button class="lb-frase-btn lb-frase-btn-clear" onclick="lbClearFrase()" title="Limpar frase">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6l-1 14H6L5 6"></path>
+                </svg>
+              </button>
+              <button class="lb-frase-btn lb-frase-btn-search" onclick="lbBuscarFrase()" title="Buscar produto com a frase">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <path d="m21 21-4.35-4.35"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Status da câmera -->
+          <div class="lb-cam-status" id="lb-st">Aguardando sinal...</div>
+        </div>
+
+        <!-- Atalhos manuais (mantidos como fallback) -->
+        <div class="lb-grid-title">Atalhos rápidos</div>
+        <div class="lb-grid">
+          <div class="lb-opt" onclick="lbSel('dor de cabeça')">
+            <div class="lb-opt-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 2a10 10 0 1 0 10 10H12z"></path>
+                <path d="M12 2a10 10 0 0 1 10 10"></path>
+              </svg>
+            </div>
+            <div class="lb-opt-name">Dor de cabeça</div>
+          </div>
+
+          <div class="lb-opt" onclick="lbSel('febre')">
+            <div class="lb-opt-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 2v20M5 7h14M5 17h14"></path>
+              </svg>
+            </div>
+            <div class="lb-opt-name">Febre</div>
+          </div>
+
+          <div class="lb-opt" onclick="lbSel('medicamento')">
+            <div class="lb-opt-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="7" y="4" width="10" height="16" rx="2"></rect>
+                <path d="M9 8h6M9 12h6"></path>
+              </svg>
+            </div>
+            <div class="lb-opt-name">Medicamento</div>
+          </div>
+
+          <div class="lb-opt" onclick="lbSel('receita')">
+            <div class="lb-opt-ico">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M6 3h12v18H6z"></path>
+                <path d="M9 7h6M9 11h6M9 15h4"></path>
+              </svg>
+            </div>
+            <div class="lb-opt-name">Receita</div>
+          </div>
+        </div>
+
+        <div class="lb-result" id="lb-result">
+          <div class="lb-r-lbl">Tradução</div>
+          <div class="lb-r-txt" id="lb-text"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="o-rate" onclick="ovClick(event,'o-rate')">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <button class="sheet-x" onclick="closeOv('o-rate')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M18 6 6 18M6 6l12 12"></path>
+          </svg>
+        </button>
+
+        <div class="sheet-head">
+          <div class="sheet-title">Avalie sua experiência</div>
+          <div class="sheet-sub">Sua percepção ajuda a melhorar o produto.</div>
+        </div>
+
+        <div class="stars-row" id="stars-row"></div>
+
+        <textarea class="r-area" id="rate-msg" placeholder="Deixe um comentário (opcional)..."></textarea>
+
+        <button class="apply-btn" onclick="submitRating()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 2 11 13"></path>
+            <path d="m22 2-7 20-4-9-9-4z"></path>
+          </svg>
+          Enviar avaliação
+        </button>
+      </div>
+    </div>
+
+    <div class="overlay" id="o-metrics" onclick="ovClick(event,'o-metrics')">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <button class="sheet-x" onclick="closeOv('o-metrics')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M18 6 6 18M6 6l12 12"></path>
+          </svg>
+        </button>
+
+        <div class="sheet-head">
+          <div class="sheet-title">Métricas do produto</div>
+          <div class="sheet-sub">Visão de SaaS pronta para expansão futura.</div>
+        </div>
+
+        <div class="m-grid">
+          <div class="m-card">
+            <div class="m-n" id="m-today">247</div>
+            <div class="m-l">Hoje</div>
+          </div>
+          <div class="m-card">
+            <div class="m-n" id="m-week">1.2k</div>
+            <div class="m-l">Semana</div>
+          </div>
+          <div class="m-card">
+            <div class="m-n" id="m-score">4.8</div>
+            <div class="m-l">NPS</div>
+          </div>
+        </div>
+
+        <div class="sec-inline-title">Buscas populares</div>
+        <div class="ts-list" id="top-searches"></div>
+
+        <div class="sec-inline-title">Idiomas usados</div>
+        <div class="lb-track">
+          <div class="lb-seg" style="flex:7;background:var(--blue)"></div>
+          <div class="lb-seg" style="flex:2;background:#0ea5e9"></div>
+          <div class="lb-seg" style="flex:1;background:var(--emerald)"></div>
+        </div>
+        <div class="lb-legend">
+          <div class="lb-leg-item"><div class="lb-leg-dot" style="background:var(--blue)"></div>PT 70%</div>
+          <div class="lb-leg-item"><div class="lb-leg-dot" style="background:#0ea5e9"></div>EN 20%</div>
+          <div class="lb-leg-item"><div class="lb-leg-dot" style="background:var(--emerald)"></div>ES 10%</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="o-qr" onclick="ovClick(event,'o-qr')">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <button class="sheet-x" onclick="closeOv('o-qr')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M18 6 6 18M6 6l12 12"></path>
+          </svg>
+        </button>
+
+        <div class="sheet-head qr-center">
+          <div class="sheet-title">Salvar no celular</div>
+          <div class="sheet-sub">QR gerado localmente, sem backend.</div>
+        </div>
+
+        <div class="qr-frame">
+          <canvas id="qr-canvas" width="130" height="130"></canvas>
+        </div>
+        <p class="qr-note" id="qr-note">Escaneie o QR Code com seu celular para salvar as informações deste produto.</p>
+      </div>
+    </div>
+
+    <div class="overlay" id="o-cart" onclick="ovClick(event,'o-cart')">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <button class="sheet-x" onclick="closeOv('o-cart')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M18 6 6 18M6 6l12 12"></path>
+          </svg>
+        </button>
+        <div class="sheet-head">
+          <div class="sheet-title">Seu pedido</div>
+          <div class="sheet-sub">Confira os itens. O farmacêutico separa tudo e você retira no balcão.</div>
+        </div>
+        <div id="cart-list" class="cart-lista"></div>
+        <div id="cart-empty" class="cart-vazio">Seu carrinho está vazio. Toque em um produto para adicionar.</div>
+        <div class="cart-total" id="cart-total"></div>
+        <button class="apply-btn cart-enviar" id="cart-enviar" onclick="checkoutCart()">Enviar pedido ao balcão</button>
+      </div>
+    </div>
+
+    <!-- ══ STANDBY OVERLAY ══ -->
+    <div id="standby-overlay" class="standby-overlay" aria-hidden="true">
+      <div id="standby-player-container" class="standby-player-container"></div>
+      <div class="standby-bottom-bar">
+        <div class="standby-clock" id="standby-clock">--:--</div>
+        <div class="standby-brand" id="standby-brand">FlexMed</div>
+        <div class="standby-tap-hint">
+          <span class="standby-tap-dot"></span>
+          Toque para continuar
+        </div>
+      </div>
+      <!-- Aviso de privacidade (LGPD): a câmera mede audiência sem gravar imagem -->
+      <div class="standby-privacidade">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+          <circle cx="12" cy="13" r="4"></circle>
+        </svg>
+        Câmera de medição de audiência anônima: estima faixa etária e atenção. Nenhuma imagem é gravada.
+      </div>
+    </div>
+
+    <div id="toast">
+      <div class="toast-ico" id="toast-ico-wrap">
+        <svg id="toast-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 6 9 17l-5-5"></path>
+        </svg>
+      </div>
+      <div id="toast-text">Ação realizada com sucesso.</div>
+    </div>
+  </div>
+
+    <script src="painel_admin.js?v=2"></script>
+    <script src="api.js?v=7"></script>
+    <script src="camera_bridge.js?v=13"></script>
+    <script src="audiencia.js?v=6"></script>
+    <script src="sessao.js?v=3"></script>
+    <script src="campaign_player.js?v=9"></script>
+    <script src="standby.js?v=6"></script>
+    <script src="presenca.js?v=1"></script>
+    <script src="icones.js?v=1"></script>
+    <script src="vitrine.js?v=5"></script>
+    <script src="script.js?v=27"></script>
+    <script src="voz.js?v=2"></script>
+    <script src="libras_integration.js?v=14"></script>
+</body>
+</html>

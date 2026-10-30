@@ -1,0 +1,464 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   FlexMed — identidade visual do totem de compras (carregada depois de styles.css)
+
+   Direção: farmácia de autoatendimento com identidade forte em azul e vermelho,
+   usada em pé, a ~1 m, por gente de todas as idades.
+   - Azul vivo = a marca e a navegação (faixa do topo, categorias, carrinho).
+   - Vermelho = desconto e ações de compra (Adicionar, Fechar pedido, Enviar).
+   - Verde = preço (o número que a pessoa procura em cada card).
+   - Tipo: Atkinson Hyperlegible Next (feita para baixa visão), números tabulares.
+   - Ícones próprios de categoria (icones.js): traço azul com um detalhe vermelho.
+   - Movimento: um momento autoral (o produto voa até o carrinho e abre "Fechar
+     pedido"); o resto é retorno rápido de toque. Respeita "reduzir movimento".
+   Unidades: o totem em pé desenha em 480px lógicos e amplia com zoom (--k).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --tv-fonte: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", system-ui, sans-serif;
+  --tv-azul: #0057d9;
+  --tv-azul-escuro: #003b97;
+  --tv-azul-claro: #e7efff;
+  --tv-vermelho: #e3001b;
+  --tv-vermelho-escuro: #b80016;
+  --tv-verde: #00813c;
+  --tv-chao: #f1f4f9;
+  --tv-superficie: #ffffff;
+  --tv-tinta: #0b1b33;
+  --tv-tinta-2: #4a5a71;
+  --tv-linha: #dbe3ef;
+  --tv-entrada: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html.totem-v #totem,
+html.totem-v #totem button,
+html.totem-v #totem input,
+html.totem-v #totem textarea,
+html.totem-v #totem select { font-family: var(--tv-fonte); }
+
+html.totem-v #totem { background: var(--tv-chao); color: var(--tv-tinta); }
+html.totem-v ::selection { background: #b9d0ff; color: var(--tv-tinta); }
+html.totem-v #totem input { caret-color: var(--tv-vermelho); }
+html.totem-v #totem :focus-visible { outline: 3px solid #ffb3bc; outline-offset: 2px; }
+/* entradas iguais em todo bloco são ruído: no totem os cards aparecem já prontos */
+html.totem-v #totem .fu { animation: none !important; opacity: 1 !important; transform: none !important; }
+
+/* Ícones próprios: traço na cor do texto, detalhe em vermelho */
+.fx-ico { width: 100%; height: 100%; display: block; }
+.fx-ico .ac { fill: var(--tv-vermelho); stroke: var(--tv-vermelho); }
+.fx-ico .al { stroke: var(--tv-vermelho); }
+
+/* ─── Faixa azul do topo: marca, busca e categorias ──────────────────────── */
+html.totem-v #hdr { min-height: 56px; padding: 0 14px; background: var(--tv-azul); border-bottom: 0; color: #fff; }
+html.totem-v .hdr-mark .brand-logo-wrap { background: #fff; box-shadow: none; }
+html.totem-v .hdr-mark .brand-monogram { color: var(--tv-azul); }
+html.totem-v .hdr-title { font-size: 15px; font-weight: 800; letter-spacing: -0.01em; color: #fff; }
+html.totem-v .hdr-sub { font-size: 10.5px; letter-spacing: 0; text-transform: none; color: #cfe0ff; }
+html.totem-v .hdr-right { display: flex; align-items: center; gap: 6px; }
+.hdr-libras {
+  display: inline-flex; align-items: center; gap: 5px; height: 32px; padding: 0 11px 0 9px;
+  border: 1.5px solid rgba(255, 255, 255, 0.55); border-radius: 999px; background: transparent;
+  color: #fff; font-size: 11.5px; font-weight: 700; cursor: pointer;
+}
+.hdr-libras svg { width: 16px; height: 16px; }
+html.totem-v .lang-group { height: 32px; padding: 2px; border-radius: 999px; background: var(--tv-azul-escuro); border: 0; }
+html.totem-v .lng { height: 28px; min-width: 30px; border-radius: 999px; font-size: 10.5px; font-weight: 700; color: #cfe0ff; background: transparent; }
+html.totem-v .lng.on { background: #fff; color: var(--tv-azul); box-shadow: none; }
+html.totem-v .hdr-clock {
+  height: 32px; padding: 0 8px; border: 0; background: transparent; font-size: 13px; font-weight: 700;
+  font-variant-numeric: tabular-nums; color: #fff;
+}
+.hdr-admin {
+  width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center;
+  color: #fff; opacity: 0.35; border-radius: 999px; transition: opacity 150ms ease;
+}
+.hdr-admin svg { width: 15px; height: 15px; }
+.hdr-admin:active { opacity: 0.9; }
+/* painel admin por cima do totem (painel_admin.js): o index segue vivo por baixo */
+#painel-admin {
+  position: fixed; inset: 0; width: 100vw; height: 100vh; border: 0; z-index: 10000; background: #fff;
+}
+#painel-admin-carregando {
+  position: fixed; inset: 0; z-index: 10001; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 18px; background: #f4f7fb; color: var(--tv-tinta); font-family: var(--tv-fonte); font-size: 22px; font-weight: 700;
+}
+#painel-admin-carregando p { margin: 0; }
+
+/* ─── Descanso de tela sem campanha: anúncios da casa (campaign_player.js › _renderCasa) ───
+   Tela em pé, legível de longe: título grande, uma ideia por banner, ação clara. O conteúdo
+   fica acima do aviso de privacidade (rodapé do descanso). */
+.cp-casa {
+  position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; gap: 14px;
+  padding: 44px 30px 96px; color: #fff; font-family: var(--tv-fonte); text-align: left;
+}
+.cp-casa h2 { margin: 0; font-size: 42px; line-height: 1.04; font-weight: 800; letter-spacing: -0.02em; text-wrap: balance; }
+.cp-casa p { margin: 0; max-width: 24em; font-size: 18px; line-height: 1.38; font-weight: 600; opacity: 0.9; }
+.cp-casa-icone {
+  width: 96px; height: 96px; margin-bottom: 6px; border-radius: 28px; display: flex; align-items: center; justify-content: center;
+  background: rgba(255, 255, 255, 0.14);
+}
+.cp-casa-icone svg { width: 54px; height: 54px; }
+.cp-casa-cta {
+  align-self: flex-start; margin-top: 8px; padding: 11px 20px; border-radius: 999px;
+  background: #fff; color: var(--tv-tinta); font-size: 16px; font-weight: 800;
+}
+.cp-casa-ofertas { background: var(--tv-azul); }
+.cp-casa-lista { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.cp-casa-lista li {
+  position: relative; display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 18px;
+  background: #fff; color: var(--tv-tinta);
+}
+.cp-casa-lista img { width: 92px; height: 92px; flex: none; object-fit: contain; }
+.cp-casa-lista div { min-width: 0; padding-right: 72px; }
+.cp-casa-nome {
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  font-size: 15px; line-height: 1.25; font-weight: 700; overflow-wrap: anywhere;
+}
+.cp-casa-lista s { display: block; margin-top: 4px; font-size: 13px; color: var(--tv-tinta-2); }
+.cp-casa-lista strong {
+  display: block; font-size: 28px; line-height: 1.1; font-weight: 800; letter-spacing: -0.01em;
+  color: var(--tv-verde); font-variant-numeric: tabular-nums;
+}
+.cp-casa-off {
+  position: absolute; top: 12px; right: 12px; padding: 4px 10px; border-radius: 999px;
+  background: var(--tv-vermelho); color: #fff; font-size: 15px; font-weight: 800;
+}
+.cp-casa-libras { background: var(--tv-azul-escuro); }
+.cp-casa-voz { background: var(--tv-vermelho); }
+.cp-casa-voz .cp-casa-cta { color: var(--tv-vermelho-escuro); }
+.cp-casa-balcao { background: var(--tv-chao); color: var(--tv-tinta); }
+.cp-casa-balcao .cp-casa-icone { background: var(--tv-azul-claro); color: var(--tv-azul); }
+.cp-casa-balcao p { opacity: 1; color: var(--tv-tinta-2); }
+.cp-casa-codigo {
+  align-self: flex-start; margin-top: 8px; padding: 8px 24px; border: 2px dashed var(--tv-azul); border-radius: 16px;
+  color: var(--tv-azul); font-size: 46px; font-weight: 800; letter-spacing: 0.08em; font-variant-numeric: tabular-nums;
+}
+.cp-casa-marcas { background: var(--tv-tinta); }
+.cp-casa-marcas .cp-casa-icone { background: rgba(0, 87, 217, 0.45); }
+#painel-admin-carregando button {
+  padding: 12px 22px; border: 1px solid var(--tv-linha); border-radius: 12px; background: #fff;
+  color: var(--tv-azul); font: inherit; font-size: 17px; cursor: pointer;
+}
+
+html.totem-v #s-area { padding: 4px 14px 12px; background: var(--tv-azul); }
+.s-saudacao {
+  margin: 2px 2px 10px; font-size: 23px; line-height: 1.12; font-weight: 800; letter-spacing: -0.02em;
+  color: #fff; text-wrap: balance;
+}
+html.totem-v .s-wrap { background: transparent; box-shadow: none; border: 0; }
+html.totem-v #s-area::before, html.totem-v #s-area::after { display: none; }
+html.totem-v .s-input {
+  height: 54px; padding: 0 96px 0 46px; border-radius: 14px; border: 0;
+  background: #fff; color: var(--tv-tinta); font-size: 15px; font-weight: 500;
+  box-shadow: 0 6px 16px rgba(0, 30, 90, 0.25); transition: box-shadow 150ms ease;
+}
+html.totem-v .s-input::placeholder { color: #6b7a90; }
+html.totem-v .s-input:focus { box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.45), 0 6px 16px rgba(0, 30, 90, 0.25); }
+html.totem-v .s-ico-l { left: 16px; width: 20px; height: 20px; color: var(--tv-azul); }
+.s-mic {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 42px; height: 42px;
+  border: 0; border-radius: 11px; background: var(--tv-vermelho); color: #fff; display: flex; align-items: center;
+  justify-content: center; cursor: pointer; transition: transform 120ms ease, background-color 150ms ease;
+}
+.s-mic svg { width: 20px; height: 20px; }
+.s-mic:active { transform: translateY(-50%) scale(0.94); background: var(--tv-vermelho-escuro); }
+html.totem-v .s-clr { right: 54px; }
+
+/* Categorias do topo: blocos com ícone próprio, todas visíveis de uma vez */
+html.totem-v #cats-bar { padding: 2px 12px 16px; background: var(--tv-azul); border-radius: 0 0 22px 22px; }
+html.totem-v .cats-scroll { gap: 6px; justify-content: space-between; }
+html.totem-v .cat.cat-tile {
+  flex: 1 1 0; min-width: 0; height: 80px; padding: 8px 2px 7px; flex-direction: column; justify-content: flex-start; gap: 5px;
+  border: 0; border-radius: 14px; background: #fff; color: var(--tv-tinta); box-shadow: none;
+  white-space: normal; transition: background-color 150ms ease, color 150ms ease, transform 120ms ease;
+}
+html.totem-v .cat.cat-tile:active { transform: scale(0.96); }
+html.totem-v .cat-tile .cat-ico { width: 32px; height: 32px; color: var(--tv-azul); flex-shrink: 0; }
+html.totem-v .cat-tile .cat-ico svg { width: 100%; height: 100%; }
+html.totem-v .cat-tile .cat-nome { max-width: 100%; font-size: 9.3px; line-height: 1.12; font-weight: 800; text-align: center; letter-spacing: -0.02em; }
+html.totem-v .cat.cat-tile.on { background: var(--tv-vermelho); color: #fff; }
+html.totem-v .cat.cat-tile.on .cat-ico { color: #fff; }
+html.totem-v .cat.cat-tile.on .fx-ico .ac { fill: #fff; stroke: #fff; }
+html.totem-v .cat.cat-tile.on .fx-ico .al { stroke: #fff; }
+
+/* Subcategorias do nicho escolhido */
+html.totem-v .subcats { gap: 7px; margin: 12px 0 0; }
+html.totem-v .cat.cat-sub {
+  height: 40px; padding: 0 14px 0 7px; gap: 7px; border-radius: 999px; border: 1.5px solid var(--tv-linha);
+  background: #fff; color: var(--tv-tinta); font-size: 12px; font-weight: 700; box-shadow: none;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+html.totem-v .cat-sub .cat-ico { width: 26px; height: 26px; padding: 3px; border-radius: 999px; background: var(--tv-azul-claro); color: var(--tv-azul); flex-shrink: 0; }
+html.totem-v .cat-sub .cat-ico svg { width: 100%; height: 100%; }
+html.totem-v .cat.cat-sub.on { background: var(--tv-azul); border-color: var(--tv-azul); color: #fff; }
+html.totem-v .cat.cat-sub.on .cat-ico { background: #fff; }
+
+/* ─── Lista de produtos ──────────────────────────────────────────────────── */
+html.totem-v #scroll { background: var(--tv-chao); padding: 0 12px 16px; }
+html.totem-v .sec-head { display: flex; align-items: baseline; justify-content: space-between; margin: 16px 2px 10px; }
+html.totem-v .sec-title {
+  margin: 0; font-size: 17px; font-weight: 800; letter-spacing: -0.01em; text-transform: none; color: var(--tv-tinta);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sec-conta { font-size: 11.5px; color: var(--tv-tinta-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+html.totem-v .p-grid { gap: 7px; }
+html.totem-v .p-card.pc-loja {
+  padding: 6px 6px 7px; border: 0; border-radius: 12px; background: var(--tv-superficie); box-shadow: none;
+  transition: transform 120ms ease;
+}
+html.totem-v .p-card.pc-loja:active { transform: scale(0.97); }
+html.totem-v .pc-loja .pc-foto { border-radius: 8px; background: #fff; }
+html.totem-v .pc-loja .pc-name { font-size: 10px; line-height: 1.25; font-weight: 600; color: var(--tv-tinta); }
+html.totem-v .pc-loja .pc-precos { min-height: 0; margin-top: auto; padding: 3px 0 0; }
+html.totem-v .pc-loja .pc-price { font-size: 14px; font-weight: 800; color: var(--tv-verde); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+html.totem-v .pc-loja .pc-price.pc-price-txt { font-size: 10px; color: var(--tv-tinta-2); }
+html.totem-v .pc-loja .pc-de { font-size: 8.5px; color: var(--tv-tinta-2); font-variant-numeric: tabular-nums; }
+html.totem-v .pc-loja .pc-off {
+  top: 5px; left: 5px; padding: 2px 6px; border-radius: 6px; background: var(--tv-vermelho); color: #fff;
+  font-size: 10px; font-weight: 800; font-variant-numeric: tabular-nums; box-shadow: none;
+}
+.pc-rx {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 3px; margin-top: 3px; padding: 2px 6px 2px 3px;
+  border-radius: 6px; background: var(--tv-azul-claro); color: var(--tv-azul-escuro); font-size: 8.5px; font-weight: 800; white-space: nowrap;
+}
+.pc-rx .fx-ico { width: 12px; height: 12px; }
+html.totem-v .pc-loja .pc-estoque { font-size: 8px; border-radius: 5px; }
+html.totem-v .p-sentinel { color: var(--tv-tinta-2); }
+
+/* Banner do topo: campo de cor cheio, sem rótulos de enfeite */
+html.totem-v .banner-sec { margin-top: 14px; }
+html.totem-v .banner-shell { background: transparent; box-shadow: none; padding: 0; border: 0; border-radius: 14px; overflow: hidden; }
+html.totem-v .banner-card { border: 0; border-radius: 14px; padding: 16px 16px 14px; background: var(--tv-azul-escuro); box-shadow: none; }
+html.totem-v .banner-card.alt-1 { background: var(--tv-vermelho); }
+html.totem-v .banner-card::before, html.totem-v .banner-card::after { display: none; }
+html.totem-v .banner-kicker, html.totem-v .banner-chip, html.totem-v .banner-art, html.totem-v .banner-cta svg { display: none; }
+html.totem-v .banner-top > div:first-child { max-width: 100%; }
+html.totem-v .banner-title { font-size: 18px; line-height: 1.2; font-weight: 800; letter-spacing: -0.01em; }
+html.totem-v .banner-sub { font-size: 11.5px; opacity: 0.9; }
+html.totem-v .banner-cta {
+  margin-left: auto; padding: 8px 14px; border-radius: 999px; background: #fff; color: var(--tv-tinta);
+  font-size: 11.5px; font-weight: 800; letter-spacing: 0; text-transform: none;
+}
+html.totem-v .banner-dot { background: var(--tv-linha); }
+html.totem-v .banner-dot.on { background: var(--tv-azul); }
+
+/* Banners do topo com mídia à direita (script.js › bannerMidia): fotos das ofertas reais
+   (com o maior desconto) ou o ícone do serviço; cada banner numa cor da identidade */
+.banner-midia { display: none; }
+html.totem-v .banner-card { display: flex; flex-direction: column; justify-content: space-between; gap: 12px; text-align: left; }
+html.totem-v .banner-top { display: flex; align-items: center; gap: 14px; }
+html.totem-v .banner-top > div:first-child { flex: 1; min-width: 0; }
+html.totem-v .banner-card.banner-ofertas { background: var(--tv-azul); }
+html.totem-v .banner-card.banner-voz { background: var(--tv-vermelho); }
+html.totem-v .banner-card.banner-libras { background: var(--tv-azul-escuro); }
+html.totem-v .banner-midia { display: block; position: relative; flex: none; width: 128px; height: 96px; }
+html.totem-v .banner-midia-icone {
+  width: 96px; display: flex; align-items: center; justify-content: center;
+  border-radius: 24px; background: rgba(255, 255, 255, 0.14); color: #fff;
+}
+html.totem-v .banner-midia-icone svg { width: 54px; height: 54px; }
+html.totem-v .banner-midia-ofertas img {
+  position: absolute; top: 12px; width: 64px; height: 72px; padding: 6px; border-radius: 14px;
+  background: #fff; object-fit: contain; box-shadow: 0 6px 16px rgba(0, 20, 60, 0.25);
+}
+html.totem-v .banner-midia-ofertas img:nth-child(1) { left: 0; }
+html.totem-v .banner-midia-ofertas img:nth-child(2) { left: 32px; top: 2px; z-index: 2; }
+html.totem-v .banner-midia-ofertas img:nth-child(3) { left: 64px; z-index: 1; }
+html.totem-v .banner-off {
+  position: absolute; left: 50%; bottom: -6px; z-index: 3; transform: translateX(-50%); white-space: nowrap;
+  padding: 3px 10px; border-radius: 999px; background: var(--tv-vermelho); color: #fff; font-size: 12px; font-weight: 800;
+}
+
+/* ─── Anúncios entre as linhas (vitrine, campanhas e anúncios da casa) ───── */
+html.totem-v .vt-banner, html.totem-v .vt-carrossel, html.totem-v .vt-video,
+html.totem-v .vt-aviso, html.totem-v .vt-produtos { border: 0; border-radius: 14px; margin: 4px 0; }
+html.totem-v .vt-produtos { background: var(--tv-azul-claro); }
+html.totem-v .vt-textos { background: linear-gradient(90deg, rgba(0, 40, 110, 0.82), rgba(0, 40, 110, 0.2) 75%, transparent); }
+html.totem-v .vt-cta { color: var(--tv-tinta); }
+.vt-campanha .vt-midia { aspect-ratio: 16 / 7; background: var(--tv-tinta); }
+.vt-campanha .vt-midia img { object-fit: contain; position: relative; z-index: 1; }
+.vt-campanha .vt-midia .vt-fundo {
+  position: absolute; inset: -10%; width: 120%; height: 120%; object-fit: cover; filter: blur(18px) saturate(1.1);
+  opacity: 0.55; z-index: 0;
+}
+html.totem-v .vt-slot.vt-casa {
+  display: flex; align-items: center; gap: 14px; min-height: 112px; margin: 4px 0; padding: 16px; border: 0; border-radius: 14px;
+  color: #fff; overflow: hidden; position: relative; cursor: pointer;
+}
+.vt-casa .vt-titulo { font-size: 18px; font-weight: 800; line-height: 1.15; letter-spacing: -0.01em; color: inherit; }
+.vt-casa .vt-sub { margin-top: 4px; font-size: 11.5px; line-height: 1.35; opacity: 0.92; color: inherit; }
+.vt-casa .vt-cta { display: inline-block; margin-top: 10px; padding: 7px 14px; border-radius: 999px; background: #fff; color: var(--tv-tinta); font-size: 11.5px; font-weight: 800; }
+.vt-casa-txt { flex: 1; min-width: 0; }
+.vt-casa-arte { width: 64px; height: 64px; flex-shrink: 0; border-radius: 999px; background: #fff; color: var(--tv-azul); display: flex; align-items: center; justify-content: center; }
+.vt-casa-arte svg { width: 34px; height: 34px; }
+html.totem-v .vt-casa-farmaceutico { background: var(--tv-azul); }
+html.totem-v .vt-casa-voz { background: var(--tv-tinta); }
+.vt-casa-voz .vt-casa-arte { color: var(--tv-vermelho); }
+html.totem-v .vt-casa-libras { background: var(--tv-azul-claro); color: var(--tv-tinta); }
+.vt-casa-libras .vt-cta { background: var(--tv-azul); color: #fff; }
+html.totem-v .vt-casa-ofertas { background: var(--tv-vermelho); align-items: stretch; }
+.vt-casa-ofertas .vt-casa-txt { display: flex; flex-direction: column; justify-content: center; }
+.vt-casa-pct { font-size: 34px; line-height: 1; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.vt-casa-prods { flex: 1.25; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.vt-casa-prod { display: flex; flex-direction: column; gap: 3px; padding: 4px; border: 0; border-radius: 9px; background: #fff; cursor: pointer; }
+.vt-casa-prod img { width: 100%; aspect-ratio: 1; object-fit: contain; }
+.vt-casa-prod b { font-size: 10.5px; font-weight: 800; color: var(--tv-verde); font-variant-numeric: tabular-nums; }
+
+/* ─── Barra de baixo: atalhos + carrinho com total e "Fechar pedido" ─────── */
+html.totem-v #nav {
+  height: auto; padding: 8px 10px 10px; gap: 8px; align-items: stretch; background: var(--tv-superficie);
+  border-top: 0; box-shadow: 0 -1px 0 var(--tv-linha), 0 -10px 24px rgba(11, 27, 51, 0.07);
+}
+.dock-atalhos { display: flex; gap: 2px; }
+html.totem-v #nav .nav-i {
+  flex: 0 0 62px; margin: 0; padding: 6px 0; gap: 3px; border-radius: 12px; color: var(--tv-tinta-2); background: transparent;
+}
+html.totem-v #nav .nav-i .nav-ico svg { width: 22px; height: 22px; }
+html.totem-v #nav .nav-i .nav-lbl { font-size: 9.5px; font-weight: 700; letter-spacing: 0; text-transform: none; }
+html.totem-v #nav .nav-i.on { color: var(--tv-azul); background: var(--tv-azul-claro); }
+html.totem-v #nav .nav-i.on::before, html.totem-v #nav .nav-i.on::after { display: none; }
+.dock-carrinho {
+  flex: 1; min-width: 0; height: 58px; display: flex; align-items: center; gap: 18px; padding: 0 8px 0 16px;
+  border: 0; border-radius: 14px; background: var(--tv-azul); color: #fff; cursor: pointer; text-align: left;
+  transition: transform 120ms ease, background-color 200ms ease;
+}
+.dock-carrinho:active { transform: scale(0.98); }
+.dock-carrinho.vazio { background: var(--tv-chao); color: var(--tv-tinta-2); }
+.dock-ico { position: relative; display: flex; }
+.dock-ico svg { width: 24px; height: 24px; }
+.dock-qtd {
+  position: absolute; top: -9px; right: -11px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px;
+  background: var(--tv-vermelho); color: #fff; font-size: 10.5px; font-weight: 800; line-height: 17px;
+  text-align: center; font-variant-numeric: tabular-nums; border: 1.5px solid #fff;
+}
+.dock-txt { display: flex; flex-direction: column; min-width: 0; line-height: 1.15; }
+.dock-txt span { font-size: 10.5px; opacity: 0.88; }
+.dock-txt b { font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.dock-cta {
+  margin-left: auto; height: 42px; padding: 0 16px; display: flex; align-items: center; border-radius: 11px;
+  background: var(--tv-vermelho); color: #fff; font-size: 13px; font-weight: 800; white-space: nowrap;
+}
+
+/* ─── Confirmação ao adicionar (o momento autoral do totem) ──────────────── */
+.voo-produto {
+  position: absolute; z-index: 700; object-fit: contain; background: #fff; border-radius: 10px; pointer-events: none;
+  box-shadow: 0 6px 18px rgba(11, 27, 51, 0.25); will-change: transform, opacity;
+}
+.ad-fundo {
+  position: absolute; inset: 0; z-index: 650; display: flex; align-items: flex-end;
+  background: rgba(11, 27, 51, 0); transition: background-color 240ms ease;
+}
+.ad-fundo.on { background: rgba(11, 27, 51, 0.45); }
+.ad-painel {
+  width: 100%; padding: 18px 16px 16px; border-radius: 20px 20px 0 0; background: var(--tv-superficie);
+  color: var(--tv-tinta); transform: translateY(32px); opacity: 0;
+  transition: transform 320ms var(--tv-entrada), opacity 200ms ease;
+}
+.ad-fundo.on .ad-painel { transform: none; opacity: 1; }
+.ad-fundo:not(.on) .ad-painel { transition-duration: 180ms; }
+.ad-topo { display: flex; align-items: center; gap: 10px; }
+.ad-topo h2 { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: -0.01em; }
+.ad-check { width: 30px; height: 30px; border-radius: 999px; background: var(--tv-verde); color: #fff; display: flex; align-items: center; justify-content: center; }
+.ad-check svg { width: 17px; height: 17px; }
+.ad-fundo.on .ad-check { animation: ad-carimbo 420ms var(--tv-entrada) 120ms both; }
+@keyframes ad-carimbo { from { transform: scale(0.4); } to { transform: scale(1); } }
+.ad-item { display: flex; gap: 12px; align-items: center; margin: 14px 0 12px; }
+.ad-foto { width: 64px; height: 64px; flex-shrink: 0; border-radius: 10px; background: #fff; border: 1px solid var(--tv-linha); overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.ad-foto img { width: 100%; height: 100%; object-fit: contain; }
+.ad-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.ad-info b { font-size: 13px; line-height: 1.3; font-weight: 700; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ad-info span { font-size: 12px; color: var(--tv-verde); font-weight: 700; font-variant-numeric: tabular-nums; }
+.ad-resumo { display: flex; justify-content: space-between; align-items: center; padding: 11px 12px; border-radius: 10px; background: var(--tv-azul-claro); font-size: 12px; }
+.ad-resumo b { font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--tv-azul-escuro); }
+.ad-recs h3 { margin: 14px 0 8px; font-size: 12.5px; font-weight: 700; }
+.ad-recs-lista { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+.ad-rec { display: flex; flex-direction: column; gap: 3px; padding: 6px; border-radius: 10px; border: 1px solid var(--tv-linha); font-size: 9.5px; }
+.ad-rec-foto { aspect-ratio: 1; border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.ad-rec-foto img { width: 100%; height: 100%; object-fit: contain; }
+.ad-rec span { line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ad-rec b { font-size: 11px; color: var(--tv-verde); font-variant-numeric: tabular-nums; }
+.ad-rec button { margin-top: 2px; height: 28px; border-radius: 8px; border: 1.5px solid var(--tv-vermelho); background: #fff; color: var(--tv-vermelho); font-size: 10.5px; font-weight: 800; cursor: pointer; }
+.ad-rec button.ok { background: var(--tv-verde); border-color: var(--tv-verde); color: #fff; }
+.ad-acoes { display: flex; gap: 8px; margin-top: 16px; }
+.ad-seguir, .ad-fechar { height: 54px; border-radius: 14px; font-size: 14px; font-weight: 800; cursor: pointer; transition: transform 120ms ease; }
+.ad-seguir { flex: 1; border: 2px solid var(--tv-azul); background: #fff; color: var(--tv-azul); }
+.ad-fechar { flex: 1.35; border: 0; background: var(--tv-vermelho); color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.ad-fechar svg { width: 20px; height: 20px; }
+.ad-seguir:active, .ad-fechar:active { transform: scale(0.98); }
+
+/* ─── Revisão do pedido (carrinho) ───────────────────────────────────────── */
+html.totem-v .sheet { border-radius: 20px 20px 0 0; }
+html.totem-v .sheet-title { font-size: 19px; font-weight: 800; letter-spacing: -0.01em; color: var(--tv-tinta); }
+html.totem-v .sheet-sub { font-size: 11.5px; color: var(--tv-tinta-2); }
+.cart-lista { display: flex; flex-direction: column; gap: 7px; margin: 10px 0; }
+.cart-item {
+  display: grid; grid-template-columns: 46px 1fr auto; grid-template-rows: auto auto; gap: 4px 10px; align-items: center;
+  padding: 9px 10px; border-radius: 12px; background: var(--tv-chao);
+}
+.cart-foto { grid-row: span 2; width: 46px; height: 46px; border-radius: 8px; background: #fff; overflow: hidden; display: flex; align-items: center; justify-content: center; color: var(--tv-azul); }
+.cart-foto img { width: 100%; height: 100%; object-fit: contain; }
+.cart-foto svg { width: 22px; height: 22px; }
+.cart-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.cart-info b { font-size: 12px; line-height: 1.25; font-weight: 700; color: var(--tv-tinta); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.cart-info span { font-size: 10.5px; color: var(--tv-tinta-2); font-variant-numeric: tabular-nums; }
+.cart-rx { font-style: normal; font-weight: 800; color: var(--tv-azul-escuro); }
+.cart-sub { grid-column: 3; grid-row: 1; font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; text-align: right; color: var(--tv-verde); }
+.cart-qtd { grid-column: 2; grid-row: 2; display: flex; align-items: center; gap: 2px; }
+.cart-qtd button { width: 34px; height: 32px; border-radius: 9px; border: 1.5px solid var(--tv-linha); background: #fff; color: var(--tv-tinta); font-size: 17px; font-weight: 700; cursor: pointer; }
+.cart-qtd span { min-width: 26px; text-align: center; font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.cart-rem { grid-column: 3; grid-row: 2; justify-self: end; border: 0; background: none; color: var(--tv-vermelho); font-size: 11px; font-weight: 700; cursor: pointer; padding: 4px; }
+.cart-vazio { padding: 28px 8px; text-align: center; font-size: 13px; color: var(--tv-tinta-2); }
+.cart-total { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: baseline; padding: 10px 2px 12px; }
+.cart-total:empty { display: none; }
+.cart-total > span { font-size: 12px; color: var(--tv-tinta-2); }
+.cart-total > b { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--tv-verde); }
+.cart-total small { grid-column: span 2; font-size: 10px; color: var(--tv-tinta-2); }
+.cart-aviso-rx {
+  grid-column: span 2; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; padding: 9px 11px; border-radius: 10px;
+  background: var(--tv-azul-claro); color: var(--tv-azul-escuro); font-size: 11.5px; font-weight: 700;
+}
+.cart-aviso-rx .fx-ico { width: 20px; height: 20px; flex-shrink: 0; }
+html.totem-v .apply-btn, .cart-enviar {
+  height: 56px; border-radius: 14px; background: var(--tv-vermelho); font-size: 15px; font-weight: 800; box-shadow: none;
+}
+.cart-enviar:disabled { background: var(--tv-linha); color: var(--tv-tinta-2); cursor: default; }
+
+/* ─── Página do produto ──────────────────────────────────────────────────── */
+html.totem-v #detail { background: var(--tv-chao); }
+html.totem-v .dp-topo { background: var(--tv-azul); border-bottom: 0; }
+html.totem-v .dp-voltar { border: 0; background: rgba(255, 255, 255, 0.16); color: #fff; font-weight: 700; }
+html.totem-v .dp-qr { border: 0; background: rgba(255, 255, 255, 0.16); color: #fff; }
+html.totem-v .dp-foto { border: 0; border-radius: 16px; background: #fff; }
+html.totem-v .dp-tipo { text-transform: none; letter-spacing: 0; font-size: 12px; font-weight: 700; color: var(--tv-azul); }
+html.totem-v .dp-nome { color: var(--tv-tinta); letter-spacing: -0.01em; text-wrap: balance; }
+html.totem-v .dp-preco { border: 0; border-radius: 14px; background: #fff; }
+html.totem-v .dp-preco-por { color: var(--tv-verde); font-variant-numeric: tabular-nums; }
+html.totem-v .dp-preco-por.dp-preco-txt { color: var(--tv-tinta-2); font-size: 20px; }
+html.totem-v .dp-preco-de { color: var(--tv-tinta-2); }
+html.totem-v .dp-economia { color: var(--tv-vermelho); }
+html.totem-v .dp-preco-off, html.totem-v .dp-selo-off { background: var(--tv-vermelho); color: #fff; }
+html.totem-v .dp-selo-receita { text-transform: none; letter-spacing: 0; }
+html.totem-v .dp-selo-receita.rx { background: var(--tv-azul); color: #fff; }
+.dp-receita {
+  display: flex; align-items: center; gap: 12px; margin: 12px 0 0; padding: 12px 14px; border-radius: 14px;
+  background: var(--tv-azul-claro); color: var(--tv-azul-escuro);
+}
+.dp-receita .fx-ico { width: 30px; height: 30px; flex-shrink: 0; }
+.dp-receita div { display: flex; flex-direction: column; gap: 2px; }
+.dp-receita b { font-size: 13.5px; font-weight: 800; }
+.dp-receita span { font-size: 11.5px; line-height: 1.35; color: var(--tv-tinta); }
+html.totem-v .dp-rodape { background: #fff; border-top: 0; box-shadow: 0 -1px 0 var(--tv-linha), 0 -10px 24px rgba(11, 27, 51, 0.07); }
+html.totem-v .dp-adicionar { background: var(--tv-vermelho); border-radius: 14px; box-shadow: none; }
+html.totem-v .dp-qtd { border: 1.5px solid var(--tv-linha); border-radius: 14px; }
+
+/* ─── Aviso rápido e assistente ──────────────────────────────────────────── */
+html.totem-v #toast { bottom: 92px; border-radius: 12px; background: var(--tv-tinta); font-size: 12.5px; }
+html.totem-v #agent { bottom: 86px; }
+html.totem-v .ag-head { background: var(--tv-azul); }
+html.totem-v .ag-mic { background: var(--tv-vermelho); }
+
+/* ─── Movimento reduzido: sem deslocamentos, mantendo o retorno visual ───── */
+@media (prefers-reduced-motion: reduce) {
+  .ad-painel { transform: none; transition: opacity 160ms ease; }
+  .ad-fundo.on .ad-check { animation: none; }
+  html.totem-v .p-card.pc-loja:active, .dock-carrinho:active, .s-mic:active, html.totem-v .cat.cat-tile:active { transform: none; }
+}

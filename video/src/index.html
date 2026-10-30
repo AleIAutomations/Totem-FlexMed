@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>FlexMed Motion</title>
+<link rel="stylesheet" href="/video/src/fontes.css">
+<style>
+  /* Tokens: os da identidade do totem (frontend/totem.css), levados para o escuro */
+  :root {
+    --azul: #0057d9; --azul-escuro: #003b97; --azul-claro: #cfe0ff;
+    --vermelho: #e3001b; --verde: #00b35a;
+    --noite: #050f24; --tinta: #0b1b33;
+    --fonte: "Atkinson Hyperlegible Next", system-ui, sans-serif;
+    --margem: 72px;          /* > 5% de 1080: folga para TVs que cortam a borda */
+  }
+  *, *::before, *::after { box-sizing: border-box; animation: none !important; transition: none !important; }
+  html, body { margin: 0; background: var(--noite); overflow: hidden; }
+  body { font-family: var(--fonte); color: #fff; -webkit-font-smoothing: antialiased; }
+
+  #palco { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: var(--noite); transform-origin: 0 0; }
+  .camada { position: absolute; inset: 0; pointer-events: none; }
+  .oculto { opacity: 0; }
+
+  /* ── Fundo vivo (periódico: o quadro 3600 é igual ao 0) ── */
+  #fundo { background: radial-gradient(120% 70% at 50% 0%, #0a2251 0%, var(--noite) 62%); }
+  .brilho { position: absolute; border-radius: 50%; filter: blur(90px); }
+  #brilho1 { width: 900px; height: 900px; background: radial-gradient(circle, rgba(0, 87, 217, .55), rgba(0, 87, 217, 0) 70%); }
+  #brilho2 { width: 760px; height: 760px; background: radial-gradient(circle, rgba(0, 59, 151, .5), rgba(0, 59, 151, 0) 70%); }
+  #grade, #particulas { position: absolute; inset: -60px; width: calc(100% + 120px); height: calc(100% + 120px); }
+
+  /* ── Tipografia ── */
+  .titulo { position: absolute; left: var(--margem); right: var(--margem); top: 150px;
+    font-size: 104px; line-height: 1.02; font-weight: 800; letter-spacing: -0.025em; white-space: pre-line; }
+  .titulo .linha { display: block; }
+  .apoio { font-size: 60px; line-height: 1.12; font-weight: 700; color: var(--azul-claro); }
+
+  /* ── Cena 1: gancho ── */
+  #anel { position: absolute; border: 6px solid rgba(207, 224, 255, .9); border-radius: 50%;
+    box-shadow: 0 0 60px rgba(0, 87, 217, .65), inset 0 0 40px rgba(0, 87, 217, .35); }
+  #mira { position: absolute; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%;
+    background: #fff; box-shadow: 0 0 0 10px rgba(0, 87, 217, .35), 0 0 50px rgba(255, 255, 255, .7); }
+  #gancho { position: absolute; left: var(--margem); right: var(--margem); top: 1180px;
+    font-size: 150px; line-height: 1.0; font-weight: 800; letter-spacing: -0.03em; }
+  #gancho .linha { display: block; }
+
+  /* ── O totem (UI real dentro do iframe) ──
+     #moldura = o vidro e o brilho (não amplia); #janela = recorte da tela; #aparelho = a UI
+     real ampliada pela câmera virtual dentro da janela. #disp leva os três para inclinar juntos. */
+  #disp { position: absolute; inset: 0; transform-style: flat; }
+  #moldura { position: absolute; border-radius: 40px; background: #0d1830;
+    box-shadow: 0 0 0 2px rgba(207, 224, 255, .16), 0 50px 120px rgba(0, 0, 0, .6); }
+  #moldura::after { content: ""; position: absolute; left: 50%; top: 5px; width: 9px; height: 9px; margin-left: -4.5px;
+    border-radius: 50%; background: #2a3a58; }
+  #janela { position: absolute; overflow: hidden; background: #fff; }
+  #aparelho { position: absolute; left: 0; top: 0; width: 480px; height: 853px; }
+  #totem-frame { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #fff; }
+  #aro { position: absolute; border: 6px solid rgba(207, 224, 255, .9); border-radius: 40px;
+    box-shadow: 0 0 60px rgba(0, 87, 217, .65); }
+
+  /* Toque e produto voando (por cima do totem) */
+  #toque { position: absolute; border-radius: 50%;
+    background: rgba(255, 255, 255, .35); border: 5px solid #fff; }
+  #voo { position: absolute; border-radius: 26px;
+    background: #fff; box-shadow: 0 24px 50px rgba(0, 0, 0, .35); }
+
+  /* ── Rodapé de prova (cenas 2–5) ── */
+  #rodape { position: absolute; left: var(--margem); right: var(--margem); top: 1600px; height: 184px; }
+  .prova { position: absolute; left: 0; right: 0; top: 0; display: flex; align-items: baseline; gap: 26px; }
+  .prova b { font-size: 120px; line-height: 1; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  .prova span { font-size: 56px; font-weight: 700; color: var(--azul-claro); line-height: 1.1; }
+  .medidor { position: absolute; top: 0; height: 184px; display: flex; flex-direction: column; justify-content: space-between; }
+  .medidor .rot { font-size: 56px; font-weight: 700; color: var(--azul-claro); }
+  .medidor .val { font-size: 112px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.03em; }
+  .medidor .val small { font-size: 60px; font-weight: 700; margin-left: 8px; }
+  #olhar-arco { position: absolute; right: 0; top: 0; width: 184px; height: 184px; }
+
+  /* ── Cena 3: fala ── */
+  #fala { position: absolute; left: var(--margem); right: var(--margem); top: 1626px; font-size: 84px; font-weight: 800;
+    line-height: 1.05; letter-spacing: -0.02em; white-space: nowrap; }
+  #fala .quem { display: block; font-size: 56px; font-weight: 700; color: var(--azul-claro); margin-bottom: 10px; letter-spacing: 0; }
+  #fala.totem-fala { top: 1572px; font-size: 64px; white-space: normal; line-height: 1.08; }   /* 2 linhas: termina antes da margem */
+  #fala .letra { display: inline-block; white-space: pre; }
+  #onda { position: absolute; left: var(--margem); width: 936px; height: 80px; top: 1530px; }
+
+  /* ── Cena 5: quadro do balcão (recriado com a identidade do admin) ── */
+  #balcao { position: absolute; left: var(--margem); right: var(--margem); top: 520px; height: 1060px; }
+  .coluna { position: absolute; top: 0; width: 296px; height: 1060px; border-radius: 30px; background: rgba(207, 224, 255, .07);
+    border: 2px solid rgba(207, 224, 255, .14); }
+  .coluna h3 { margin: 30px 0 0 24px; font-size: 52px; font-weight: 800; letter-spacing: -0.025em; }
+  #cartao { position: absolute; width: 264px; height: 330px; border-radius: 24px; background: #fff; color: var(--tinta);
+    padding: 22px; box-shadow: 0 30px 60px rgba(0, 0, 0, .4); }
+  #cartao .cod { font-size: 72px; font-weight: 800; letter-spacing: 0.04em; color: var(--azul); line-height: 1; }
+  #cartao .item { margin-top: 18px; font-size: 30px; font-weight: 700; line-height: 1.15; }
+  #cartao .onde { margin-top: 10px; font-size: 28px; font-weight: 700; color: #4a5a71; }
+  #cartao .ok { position: absolute; left: 22px; bottom: 22px; height: 56px; padding: 0 20px; border-radius: 28px;
+    background: var(--verde); color: #fff; font-size: 30px; font-weight: 800; display: flex; align-items: center; }
+  #cartao .vazio { position: absolute; left: 22px; bottom: 22px; height: 56px; padding: 0 20px; border-radius: 28px;
+    background: #e7efff; color: var(--azul); font-size: 30px; font-weight: 800; display: flex; align-items: center; }
+
+  /* ── Cena 6: por dentro ── */
+  .no { position: absolute; left: var(--margem); right: var(--margem); border-radius: 34px; padding: 30px 40px;
+    background: rgba(207, 224, 255, .07); border: 2px solid rgba(207, 224, 255, .18); }
+  .no h4 { margin: 0; font-size: 72px; font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
+  .no .chips { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 22px; }
+  .no .chip { font-size: 44px; font-weight: 700; padding: 10px 24px; border-radius: 999px; background: rgba(0, 87, 217, .35);
+    color: #fff; white-space: nowrap; }
+  .no.forte { background: linear-gradient(160deg, rgba(0, 87, 217, .55), rgba(0, 59, 151, .35)); border-color: rgba(207, 224, 255, .4); }
+  .fio { position: absolute; width: 6px; margin-left: -3px; background: linear-gradient(rgba(207, 224, 255, .5), rgba(207, 224, 255, .15));
+    transform-origin: 50% 0; border-radius: 3px; }
+  .pacote { position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; background: #fff;
+    box-shadow: 0 0 24px rgba(207, 224, 255, .9); }
+  .pessoa { position: absolute; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; background: var(--azul-claro); }
+  .faixa-rot { position: absolute; top: 1320px; width: 128px; text-align: center; font-size: 40px; font-weight: 700; color: var(--azul-claro); }
+  #anuncio-pub { position: absolute; left: var(--margem); right: var(--margem); top: 1430px; height: 340px; border-radius: 34px;
+    overflow: hidden; }
+  .anuncio-faixa { position: absolute; inset: 0; display: flex; align-items: center; gap: 40px; padding: 0 44px; }
+  .anuncio-faixa img { width: 240px; height: 240px; border-radius: 26px; background: #fff; }
+  .anuncio-faixa div { font-size: 64px; font-weight: 800; line-height: 1.02; letter-spacing: -0.02em; }
+  .anuncio-faixa small { display: block; font-size: 44px; font-weight: 700; margin-top: 12px; opacity: .85; letter-spacing: 0; }
+  .numero { position: absolute; left: var(--margem); right: var(--margem); }
+  .numero b { display: block; font-size: 240px; font-weight: 800; line-height: .9; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+  .numero span { display: block; margin-top: 14px; font-size: 60px; font-weight: 700; color: var(--azul-claro); line-height: 1.1; text-wrap: balance; }
+
+  /* ── Cena 7: fechamento ── */
+  #lgpd { position: absolute; left: var(--margem); right: var(--margem); top: 640px; font-size: 112px; font-weight: 800;
+    line-height: 1.04; letter-spacing: -0.03em; white-space: pre-line; }
+  #tagline { position: absolute; left: var(--margem); right: var(--margem); top: 400px; font-size: 132px; font-weight: 800;
+    line-height: 1.0; letter-spacing: -0.035em; }
+  #tagline .linha { display: block; }
+  #marca { position: absolute; left: var(--margem); top: 800px; display: flex; align-items: center; gap: 30px; }
+  #marca .mono { width: 150px; height: 150px; border-radius: 38px; background: #fff; color: var(--azul); display: flex;
+    align-items: center; justify-content: center; font-size: 72px; font-weight: 800; letter-spacing: -0.04em; }
+  #marca .nome { font-size: 120px; font-weight: 800; letter-spacing: -0.035em; }
+  #contato { position: absolute; left: var(--margem); right: var(--margem); top: 1110px; }
+  #contato .linha-qr { display: flex; align-items: center; gap: 48px; }
+  #contato .qr { width: 380px; height: 380px; padding: 24px; border-radius: 36px; background: #fff; flex: none; }
+  #contato .qr img { width: 100%; height: 100%; display: block; }
+  #contato .l1 { font-size: 84px; font-weight: 800; line-height: 1.02; letter-spacing: -0.025em; white-space: pre-line; }
+  #contato .l2 { font-size: 64px; font-weight: 700; color: var(--azul-claro); margin-top: 40px; white-space: nowrap; }
+
+  /* ── Preview ── */
+  #ctrl { display: none; position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 18px; background: rgba(5, 15, 36, .92);
+    gap: 14px; align-items: center; font: 600 14px/1 system-ui; color: #cfe0ff; z-index: 10; }
+  body.preview #ctrl { display: flex; }
+  #ctrl input[type=range] { flex: 1; }
+  #ctrl button { font: 700 14px system-ui; padding: 8px 14px; border-radius: 8px; border: 0; background: #0057d9; color: #fff; cursor: pointer; }
+  #ctrl output { min-width: 190px; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<div id="palco">
+  <div id="fundo" class="camada">
+    <div id="brilho1" class="brilho"></div>
+    <div id="brilho2" class="brilho"></div>
+    <svg id="grade"></svg>
+    <svg id="particulas"></svg>
+  </div>
+
+  <!-- Cena 1 -->
+  <div id="anel"></div>
+  <div id="mira"></div>
+  <div id="gancho"></div>
+
+  <!-- Títulos das cenas 2–6 -->
+  <div id="t-acorda" class="titulo"></div>
+  <div id="t-voz" class="titulo"></div>
+  <div id="t-libras" class="titulo"></div>
+  <div id="t-fluxo" class="titulo"></div>
+  <div id="t-dentro" class="titulo"></div>
+  <div id="t-publico" class="titulo"></div>
+
+  <!-- O totem real -->
+  <div id="disp">
+    <div id="moldura"></div>
+    <div id="janela"><div id="aparelho"><iframe id="totem-frame" src="/video/totem.html" scrolling="no"></iframe></div></div>
+  </div>
+  <div id="aro"></div>
+  <div id="toque"></div>
+  <img id="voo" alt="">
+
+  <!-- Rodapés de prova -->
+  <div id="rodape">
+    <div id="hud-dist" class="medidor" style="left:0"><span class="rot"></span><span class="val"></span></div>
+    <div id="hud-olhar" class="medidor" style="left:440px"><span class="rot"></span><span class="val"></span></div>
+    <svg id="olhar-arco" viewBox="0 0 184 184">
+      <circle cx="92" cy="92" r="78" fill="none" stroke="rgba(207,224,255,.18)" stroke-width="14"/>
+      <circle id="olhar-prog" cx="92" cy="92" r="78" fill="none" stroke="#fff" stroke-width="14" stroke-linecap="round"
+        transform="rotate(-90 92 92)" stroke-dasharray="490.1" stroke-dashoffset="490.1"/>
+    </svg>
+    <div id="prova-voz" class="prova"></div>
+    <div id="prova-libras" class="prova" style="flex-direction:column;gap:12px"></div>
+    <div id="prova-balcao" class="prova"></div>
+  </div>
+  <svg id="onda" viewBox="0 0 936 150"></svg>
+  <div id="fala"></div>
+
+  <!-- Cena 5: balcão -->
+  <div id="balcao">
+    <div class="coluna" style="left:0"><h3></h3></div>
+    <div class="coluna" style="left:320px"><h3></h3></div>
+    <div class="coluna" style="left:640px"><h3></h3></div>
+    <div id="cartao"><div class="cod"></div><div class="item"></div><div class="onde"></div><div id="cartao-selo"></div></div>
+  </div>
+
+  <!-- Cena 6: por dentro -->
+  <div id="diagrama" class="camada"></div>
+  <div id="publico" class="camada"></div>
+  <div id="numeros" class="camada"></div>
+
+  <!-- Cena 7 -->
+  <div id="lgpd"></div>
+  <div id="tagline"></div>
+  <div id="marca"><div class="mono">FM</div><div class="nome"></div></div>
+  <div id="contato"><div class="linha-qr"><div class="qr"><img id="qr-img" src="/video/qr.svg" alt=""></div><div class="l1"></div></div><div class="l2"></div></div>
+</div>
+
+<div id="ctrl">
+  <button id="ctrl-tocar" type="button">▶︎ Tocar</button>
+  <input id="ctrl-quadro" type="range" min="0" max="3599" value="0">
+  <output id="ctrl-info">quadro 0</output>
+</div>
+
+<script type="module" src="/video/src/cenas.js"></script>
+</body>
+</html>

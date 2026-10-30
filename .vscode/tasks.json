@@ -1,0 +1,18 @@
+{
+  // FlexMed: Cmd+Shift+P > "Tasks: Run Task" > escolha a tarefa (usa ./flexmed.sh)
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "FlexMed: iniciar (totem)",
+      "type": "shell",
+      "command": "./flexmed.sh iniciar",
+      "problemMatcher": [],
+      "group": { "kind": "build", "isDefault": true }
+    },
+    { "label": "FlexMed: parar", "type": "shell", "command": "./flexmed.sh parar", "problemMatcher": [] },
+    { "label": "FlexMed: reiniciar", "type": "shell", "command": "./flexmed.sh reiniciar", "problemMatcher": [] },
+    { "label": "FlexMed: status", "type": "shell", "command": "./flexmed.sh status", "problemMatcher": [] },
+    { "label": "FlexMed: logs ao vivo", "type": "shell", "command": "./flexmed.sh logs", "problemMatcher": [], "isBackground": true },
+    { "label": "FlexMed: abrir admin", "type": "shell", "command": "./flexmed.sh abrir", "problemMatcher": [] }
+  ]
+}
